@@ -1,0 +1,1165 @@
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MedCath Khata</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0f4f8;color:#1a2332}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+:root{--green:#16a34a;--red:#dc2626;--blue:#2563eb;--yellow:#d97706;--ink:#1a2332;--sub:#64748b;--border:#e2e8f0}
+.app{display:flex;flex-direction:column;height:100vh;max-width:520px;margin:0 auto;background:#f0f4f8;box-shadow:0 0 30px rgba(0,0,0,.08)}
+@media(min-width:700px){.app{max-width:100%}}
+/* TOPBAR */
+.topbar{background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50}
+.topbar .back{font-size:20px;cursor:pointer;width:28px}
+.topbar-title{flex:1}
+.topbar-title h1{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+.topbar-title h1 img{height:22px;width:22px;border-radius:5px;object-fit:cover}
+.topbar-title .sub{font-size:11px;opacity:.8;margin-top:2px}
+.topbar-icon{font-size:18px;cursor:pointer;padding:4px}
+.sync-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+.sync-badge.ok{background:#4ade80;color:#14532d}
+.sync-badge.ing{background:#fbbf24;color:#78350f}
+.sync-badge.err{background:#f87171;color:#7f1d1d}
+.sync-badge.off{background:rgba(255,255,255,.2);color:#fff}
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;padding-bottom:90px}
+/* BANNERS */
+.balance-banner{background:#fff;margin:14px;border-radius:16px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.balance-row{display:flex;justify-content:space-between;align-items:center}
+.balance-col{text-align:center;flex:1}
+.balance-col .lbl{font-size:11px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.balance-col .val{font-size:20px;font-weight:800;margin-top:4px}
+.balance-divider{width:1px;background:var(--border);height:36px}
+/* QUICK ACTIONS */
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 14px 14px}
+.qa-btn{border:none;border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-weight:700;font-size:14px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.qa-btn .ic{font-size:26px}
+.qa-sale{background:linear-gradient(135deg,#16a34a,#15803d)}
+.qa-purchase{background:linear-gradient(135deg,#dc2626,#b91c1c)}
+/* SECTION */
+.section-title{padding:6px 18px;font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;align-items:center}
+.section-title a{color:var(--blue);font-weight:600;font-size:12px;cursor:pointer}
+/* LIST */
+.list-card{background:#fff;margin:0 14px 14px;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.list-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+.list-row:last-child{border-bottom:none}
+.list-row:active{background:#f8fafc}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.list-main{flex:1;min-width:0}
+.list-main .t1{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-main .t2{font-size:12px;color:var(--sub);margin-top:2px}
+.list-amt{text-align:right;flex-shrink:0}
+.list-amt .a1{font-size:14px;font-weight:700}
+.list-amt .a2{font-size:10px;color:var(--sub);text-transform:uppercase;font-weight:600}
+.empty-state{text-align:center;padding:40px 20px;color:var(--sub)}
+.empty-state .ic{font-size:40px;margin-bottom:8px;opacity:.4}
+.empty-state p{font-size:13px}
+/* BOTTOM NAV */
+.bottomnav{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;background:#fff;border-top:1px solid var(--border);display:flex;z-index:60;box-shadow:0 -2px 10px rgba(0,0,0,.05)}
+@media(min-width:700px){.bottomnav{max-width:100%}}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 7px;cursor:pointer;color:var(--sub);font-size:10.5px;font-weight:600}
+.bn-item .ic{font-size:20px}
+.bn-item.active{color:var(--blue)}
+/* SHEET */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;justify-content:center}
+.sheet{background:#f0f4f8;width:100%;max-width:520px;display:flex;flex-direction:column;animation:slideUp .2s ease;max-height:100vh;overflow:hidden}
+@media(min-width:700px){.sheet{border-radius:18px;max-height:92vh;align-self:center}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.sheet-header{background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.sheet-header h2{font-size:16px;font-weight:700;flex:1}
+.sheet-header .close{font-size:22px;cursor:pointer;color:var(--sub);line-height:1}
+.sheet-body{flex:1;overflow-y:auto;padding:16px}
+.sheet-footer{background:#fff;padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px}
+/* FORMS */
+.f-group{margin-bottom:14px}
+.f-group label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px}
+.f-group input,.f-group select,.f-group textarea{width:100%;background:#fff;border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-size:14px;outline:none;font-family:inherit;color:var(--ink)}
+.f-group input:focus,.f-group select:focus,.f-group textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.f-group textarea{resize:vertical;min-height:70px}
+.f-row{display:flex;gap:10px}.f-row .f-group{flex:1}
+.toggle-group{display:flex;background:#e2e8f0;border-radius:10px;padding:3px;gap:3px}
+.toggle-btn{flex:1;text-align:center;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;color:var(--sub)}
+.toggle-btn.active.in{background:var(--green);color:#fff}
+.toggle-btn.active.out{background:var(--red);color:#fff}
+/* BUTTONS */
+.btn{border:none;border-radius:10px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;flex:1;text-align:center;transition:opacity .15s}
+.btn:active{opacity:.8}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-ghost{background:#e2e8f0;color:var(--ink)}
+.btn-sm{padding:7px 12px;font-size:12px;flex:none;border:none;border-radius:8px;cursor:pointer;font-weight:600}
+/* ITEM ROWS */
+.item-row{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.item-row-top{display:flex;gap:8px;margin-bottom:8px}
+.item-row-top select{flex:2;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:13px;outline:none}
+.item-row-bottom{display:flex;gap:8px;align-items:center}
+.item-row-bottom input{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:13px;outline:none}
+.item-sub{font-size:13px;font-weight:700;color:var(--green);flex:1;text-align:right;white-space:nowrap}
+.add-item-btn{width:100%;border:2px dashed var(--border);background:transparent;border-radius:12px;padding:12px;color:var(--blue);font-weight:700;font-size:13px;cursor:pointer;margin-bottom:12px}
+.total-box{background:#fff;border-radius:12px;padding:14px;margin-top:6px}
+.total-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--sub)}
+.total-row.grand{font-size:16px;font-weight:800;color:var(--ink);border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
+/* BILL */
+.bill-doc{background:#fff;padding:24px;font-family:Arial,sans-serif;color:#000}
+.bill-doc-header{text-align:center;margin-bottom:16px;border-bottom:2px solid #1e40af;padding-bottom:12px}
+.bill-doc-header img{height:40px;margin-bottom:6px}
+.bill-doc-header h2{color:#1e40af;font-size:18px}
+.bill-doc-header p{font-size:11px;color:#555;margin-top:2px}
+.bill-doc-meta{display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px;color:#333}
+.bill-doc table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
+.bill-doc th{background:#1e40af;color:#fff;padding:7px 8px;text-align:left}
+.bill-doc td{padding:7px 8px;border-bottom:1px solid #eee}
+.bill-doc-total{text-align:right;font-size:14px;font-weight:800;color:#1e40af;border-top:2px solid #1e40af;padding-top:8px}
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a2332;color:#fff;padding:11px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 6px 20px rgba(0,0,0,.3);display:none;white-space:nowrap}
+.toast.success{background:#16a34a}.toast.error{background:#dc2626}.toast.info{background:#2563eb}
+/* SEARCH */
+.search-box{margin:14px 14px 6px;position:relative}
+.search-box input{width:100%;background:#fff;border:1px solid var(--border);border-radius:12px;padding:11px 14px 11px 38px;font-size:14px;outline:none}
+.search-box .si{position:absolute;left:13px;top:12px;color:var(--sub);font-size:15px}
+/* TABS */
+.tab-row{display:flex;background:#fff;border-radius:12px;padding:3px;margin:14px;gap:3px}
+.tab-item{flex:1;text-align:center;padding:9px;border-radius:9px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer}
+.tab-item.active{background:var(--blue);color:#fff}
+/* LOGIN / SETUP */
+.full-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e40af,#2563eb);padding:20px}
+.center-card{background:#fff;border-radius:24px;padding:32px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.center-card .logo-area{font-size:48px;margin-bottom:10px}
+.center-card .logo-area img{height:56px;border-radius:12px}
+.center-card h1{font-size:22px;font-weight:800;color:var(--ink);margin-bottom:6px}
+.center-card p{font-size:13px;color:var(--sub);margin-bottom:20px;line-height:1.5}
+.login-field{text-align:left;margin-bottom:14px}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:5px}
+.login-field input{width:100%;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;outline:none}
+.login-field input:focus{border-color:var(--blue)}
+.spinner{width:22px;height:22px;border:3px solid #e2e8f0;border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* SETUP SCREEN */
+.setup-step{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px;margin-bottom:12px;text-align:left}
+.setup-step .step-num{background:#2563eb;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:8px}
+.setup-step p{font-size:13px;color:#0c4a6e;line-height:1.5}
+.setup-step a{color:#2563eb;font-weight:600}
+.setup-step input{width:100%;background:#fff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px;font-size:13px;margin-top:8px;outline:none;font-family:monospace}
+.setup-step input:focus{border-color:#2563eb}
+/* LOGO UPLOAD */
+.logo-upload-box{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:#fff;margin-bottom:6px}
+.logo-upload-box img{max-height:60px;max-width:100%;border-radius:8px}
+@media print{.no-print{display:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="full-screen" style="align-items:flex-start;padding:16px;overflow-y:auto">
+    <div class="center-card" style="max-width:440px;text-align:left;padding:28px 24px">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:40px">☁️</div>
+        <h1 style="font-size:20px">Connect to Supabase Cloud</h1>
+        <p>One-time setup — 5 minutes. Free forever.</p>
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 1</span>
+        <p>Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → Sign up free → Create a new project (any name, e.g. "medcathkhata")</p>
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 2</span>
+        <p>In your project → go to <strong>SQL Editor</strong> → paste and run this SQL to create your tables:</p>
+        <div style="background:#0f172a;color:#a5f3fc;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;margin-top:8px;line-height:1.6;overflow-x:auto;white-space:pre">create table parties (
+  id text primary key,
+  name text, type text,
+  phone text, openingBalance numeric,
+  notes text
+);
+create table products (
+  id text primary key,
+  name text, unit text,
+  defaultPrice numeric,
+  defaultCost numeric, stock numeric
+);
+create table transactions (
+  id text primary key,
+  partyId text, type text,
+  date text, items jsonb,
+  total numeric, paid numeric,
+  balance numeric, notes text,
+  isPayment boolean
+);
+create table app_settings (
+  id integer primary key,
+  data text
+);</div>
+        <button class="btn-sm btn-ghost" style="margin-top:8px;background:#e0f2fe;color:#0369a1" onclick="copySQL()">📋 Copy SQL</button>
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 3</span>
+        <p>Go to <strong>Settings → API</strong> in your Supabase project. Copy your <strong>Project URL</strong> and <strong>anon/public key</strong> and paste below:</p>
+        <input id="setup-url" placeholder="https://your-project.supabase.co" autocomplete="off">
+        <input id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off" style="margin-top:8px;font-size:11px">
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 4</span>
+        <p>In Supabase → <strong>Authentication → Policies</strong>, for each table run:<br><code style="font-size:11px;background:#e0f2fe;padding:2px 6px;border-radius:4px">ALTER TABLE parties ENABLE ROW LEVEL SECURITY;</code><br>Then add a policy: <strong>Allow all for anon</strong> (since this is your private app).</p>
+        <p style="margin-top:6px;font-size:12px;color:#0369a1">Or in SQL Editor run this shortcut:</p>
+        <div style="background:#0f172a;color:#a5f3fc;border-radius:8px;padding:10px;font-size:11px;font-family:monospace;margin-top:6px;line-height:1.6;overflow-x:auto;white-space:pre">create policy "allow all" on parties for all using (true);
+create policy "allow all" on products for all using (true);
+create policy "allow all" on transactions for all using (true);
+create policy "allow all" on app_settings for all using (true);</div>
+        <button class="btn-sm btn-ghost" style="margin-top:8px;background:#e0f2fe;color:#0369a1" onclick="copyRLS()">📋 Copy RLS Policies</button>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveSetupAndContinue()">✓ Save &amp; Connect</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="skipSetup()">Skip for now (local mode)</button>
+    </div>
+  </div>
+  <div id="toast" class="toast info" style="display: block;">Connected! Downloading configured app…</div></div>
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════════════
+// MedCath Khata — Supabase Cloud Edition
+// Data syncs across ALL your devices via Supabase free tier
+// ════════════════════════════════════════════════════════════════
+
+// ── STEP 1: Paste your Supabase values here ──────────────────
+// Get these from: supabase.com → your project → Settings → API
+const SUPA_URL = 'https://jaunwmecivmvlmsffzrj.supabase.co';   // e.g. 'https://xyzxyz.supabase.co'
+const SUPA_KEY = 'sb_publishable_gE50bYKV2FhUpviKh9d0zQ_G5hk8hrl';   // your anon/public key
+
+const CONFIGURED = SUPA_URL !== '' && SUPA_KEY !== '';
+
+// ─── LOCAL STORAGE (offline cache + fallback) ─────────────────
+const LS = {
+  get(k)    { try { const v=localStorage.getItem('MCK_'+k); return v?JSON.parse(v):null; } catch(e){return null;} },
+  set(k,v)  { try { localStorage.setItem('MCK_'+k, JSON.stringify(v)); } catch(e){} },
+  del(k)    { try { localStorage.removeItem('MCK_'+k); } catch(e){} }
+};
+
+// ─── SUPABASE REST HELPERS ────────────────────────────────────
+async function sbFetch(method, path, body) {
+  if (!CONFIGURED) throw new Error('Supabase not configured');
+  const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
+    method,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method==='POST' ? 'return=representation' : 'return=representation'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) { const t=await res.text(); throw new Error(t); }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+const sb = {
+  select: (table, q='')       => sbFetch('GET', table+'?'+q),
+  insert: (table, row)        => sbFetch('POST', table, row),
+  update: (table, q, data)    => sbFetch('PATCH', table+'?'+q, data),
+  upsert: (table, row)        => sbFetch('POST', table+'?on_conflict=id', row),
+  delete: (table, q)          => sbFetch('DELETE', table+'?'+q),
+};
+
+// ─── SYNC ENGINE ──────────────────────────────────────────────
+// All writes go to localStorage immediately (instant UI),
+// then push to Supabase in the background.
+// On load, pull from Supabase to get latest from any device.
+
+let syncStatus = 'off'; // off | ok | ing | err
+let pendingSync = false;
+let syncTimer = null;
+
+function setSyncStatus(s) {
+  syncStatus = s;
+  const el = document.getElementById('sync-badge');
+  if (!el) return;
+  const labels = { ok:'☁ Synced', ing:'⟳ Syncing…', err:'⚠ Offline', off:'● Local' };
+  el.textContent = labels[s]||'';
+  el.className = 'sync-badge ' + s;
+}
+
+async function pushToCloud(table, row) {
+  if (!CONFIGURED) return;
+  setSyncStatus('ing');
+  try {
+    await sb.upsert(table, row);
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('err');
+    pendingSync = true;
+    scheduleSyncRetry();
+  }
+}
+
+async function deleteFromCloud(table, id) {
+  if (!CONFIGURED) return;
+  try { await sb.delete(table, 'id=eq.'+id); } catch(e) { setSyncStatus('err'); }
+}
+
+function scheduleSyncRetry() {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(fullSync, 30000);
+}
+
+async function fullSync() {
+  if (!CONFIGURED) { setSyncStatus('off'); return; }
+  setSyncStatus('ing');
+  try {
+    const [parties, products, transactions, settings] = await Promise.all([
+      sb.select('parties', 'order=name.asc'),
+      sb.select('products', 'order=name.asc'),
+      sb.select('transactions', 'order=date.desc'),
+      sb.select('app_settings', 'id=eq.1'),
+    ]);
+    state.parties      = parties      || [];
+    state.products     = products     || [];
+    state.transactions = transactions || [];
+    if (settings && settings[0]) {
+      try { const s = JSON.parse(settings[0].data); state.company=s.company||state.company; state.users=s.users||state.users; } catch(e){}
+    }
+    LS.set('state', state);
+    setSyncStatus('ok');
+    pendingSync = false;
+    rerenderScreen();
+  } catch(e) {
+    setSyncStatus('err');
+    scheduleSyncRetry();
+  }
+}
+
+async function saveSettings() {
+  LS.set('state', state);
+  if (!CONFIGURED) return;
+  try {
+    await sb.upsert('app_settings', { id:1, data: JSON.stringify({ company:state.company, users:state.users }) });
+  } catch(e) { setSyncStatus('err'); }
+}
+
+// ─── STATE ───────────────────────────────────────────────────
+let state = { company:{ name:'MedCath Khata', phone:'', address:'', logo:'' }, users:[{username:'admin',password:'admin123',displayName:'Admin',role:'owner'}], parties:[], products:[], transactions:[] };
+let session = null;
+let currentScreen = 'home';
+let sheetStack = [];
+let toastTimer = null;
+let _txFilter = 'all';
+let txItemCount = 0;
+
+// ─── BOOT ────────────────────────────────────────────────────
+async function boot() {
+  // Load from local cache first (instant)
+  const cached = LS.get('state');
+  if (cached) state = { ...state, ...cached };
+  session = LS.get('session');
+
+  if (!CONFIGURED) {
+    // Show setup wizard on first open
+    const seenSetup = LS.get('setup_done');
+    if (!seenSetup) { renderSetupWizard(); return; }
+    setSyncStatus('off');
+  }
+
+  renderApp();
+
+  // Pull fresh data from cloud in background
+  if (CONFIGURED) {
+    fullSync();
+  }
+}
+
+// ─── SETUP WIZARD ─────────────────────────────────────────────
+function renderSetupWizard() {
+  document.getElementById('app').innerHTML = `
+  <div class="full-screen" style="align-items:flex-start;padding:16px;overflow-y:auto">
+    <div class="center-card" style="max-width:440px;text-align:left;padding:28px 24px">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:40px">☁️</div>
+        <h1 style="font-size:20px">Connect to Supabase Cloud</h1>
+        <p>One-time setup — 5 minutes. Free forever.</p>
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 1</span>
+        <p>Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → Sign up free → Create a new project (any name, e.g. "medcathkhata")</p>
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 2</span>
+        <p>In your project → go to <strong>SQL Editor</strong> → paste and run this SQL to create your tables:</p>
+        <div style="background:#0f172a;color:#a5f3fc;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;margin-top:8px;line-height:1.6;overflow-x:auto;white-space:pre">create table parties (
+  id text primary key,
+  name text, type text,
+  phone text, openingBalance numeric,
+  notes text
+);
+create table products (
+  id text primary key,
+  name text, unit text,
+  defaultPrice numeric,
+  defaultCost numeric, stock numeric
+);
+create table transactions (
+  id text primary key,
+  partyId text, type text,
+  date text, items jsonb,
+  total numeric, paid numeric,
+  balance numeric, notes text,
+  isPayment boolean
+);
+create table app_settings (
+  id integer primary key,
+  data text
+);</div>
+        <button class="btn-sm btn-ghost" style="margin-top:8px;background:#e0f2fe;color:#0369a1" onclick="copySQL()">📋 Copy SQL</button>
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 3</span>
+        <p>Go to <strong>Settings → API</strong> in your Supabase project. Copy your <strong>Project URL</strong> and <strong>anon/public key</strong> and paste below:</p>
+        <input id="setup-url" placeholder="https://your-project.supabase.co" autocomplete="off"/>
+        <input id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off" style="margin-top:8px;font-size:11px"/>
+      </div>
+
+      <div class="setup-step">
+        <span class="step-num">STEP 4</span>
+        <p>In Supabase → <strong>Authentication → Policies</strong>, for each table run:<br/><code style="font-size:11px;background:#e0f2fe;padding:2px 6px;border-radius:4px">ALTER TABLE parties ENABLE ROW LEVEL SECURITY;</code><br/>Then add a policy: <strong>Allow all for anon</strong> (since this is your private app).</p>
+        <p style="margin-top:6px;font-size:12px;color:#0369a1">Or in SQL Editor run this shortcut:</p>
+        <div style="background:#0f172a;color:#a5f3fc;border-radius:8px;padding:10px;font-size:11px;font-family:monospace;margin-top:6px;line-height:1.6;overflow-x:auto;white-space:pre">create policy "allow all" on parties for all using (true);
+create policy "allow all" on products for all using (true);
+create policy "allow all" on transactions for all using (true);
+create policy "allow all" on app_settings for all using (true);</div>
+        <button class="btn-sm btn-ghost" style="margin-top:8px;background:#e0f2fe;color:#0369a1" onclick="copyRLS()">📋 Copy RLS Policies</button>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveSetupAndContinue()">✓ Save & Connect</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="skipSetup()">Skip for now (local mode)</button>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>`;
+}
+
+const SQL_TABLES = `create table parties (
+  id text primary key,
+  name text, type text,
+  phone text, openingBalance numeric,
+  notes text
+);
+create table products (
+  id text primary key,
+  name text, unit text,
+  defaultPrice numeric,
+  defaultCost numeric, stock numeric
+);
+create table transactions (
+  id text primary key,
+  partyId text, type text,
+  date text, items jsonb,
+  total numeric, paid numeric,
+  balance numeric, notes text,
+  isPayment boolean
+);
+create table app_settings (
+  id integer primary key,
+  data text
+);`;
+
+const SQL_RLS = `create policy "allow all" on parties for all using (true);
+create policy "allow all" on products for all using (true);
+create policy "allow all" on transactions for all using (true);
+create policy "allow all" on app_settings for all using (true);`;
+
+function copySQL() { navigator.clipboard?.writeText(SQL_TABLES); showToast('SQL copied!'); }
+function copyRLS() { navigator.clipboard?.writeText(SQL_RLS); showToast('RLS policies copied!'); }
+
+async function saveSetupAndContinue() {
+  const url = document.getElementById('setup-url')?.value?.trim().replace(/\/$/,'');
+  const key = document.getElementById('setup-key')?.value?.trim();
+  if (!url || !key) { showToast('Please fill in both URL and Key', 'error'); return; }
+  if (!url.startsWith('https://') || !url.includes('supabase.co')) { showToast('URL looks wrong — should be https://xxx.supabase.co', 'error'); return; }
+
+  // Test connection
+  showToast('Testing connection…', 'info');
+  try {
+    const res = await fetch(url + '/rest/v1/app_settings?id=eq.1', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
+    if (!res.ok) throw new Error('Status ' + res.status);
+  } catch(e) {
+    showToast('Connection failed: ' + e.message + '. Check URL/key and make sure tables are created.', 'error');
+    return;
+  }
+
+  // Save credentials into the HTML file via download
+  showToast('Connected! Downloading configured app…', 'info');
+  setTimeout(async () => {
+    const html = document.documentElement.outerHTML;
+    const patched = html
+      .replace("const SUPA_URL = '';", `const SUPA_URL = '${url}';`)
+      .replace("const SUPA_KEY = '';", `const SUPA_KEY = '${key}';`);
+    const blob = new Blob([patched], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'MedCathPro_Khata.html';
+    a.click();
+    LS.set('setup_done', true);
+    showToast('✓ Done! Replace this file with the downloaded one, then reopen it.', 'success');
+  }, 800);
+}
+
+function skipSetup() {
+  LS.set('setup_done', true);
+  renderApp();
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────
+const fmt = {
+  money:      n => 'Rs ' + Math.abs(Number(n)||0).toLocaleString('en-PK'),
+  moneySgn:   n => (n<0?'–':'') + 'Rs ' + Math.abs(Number(n)||0).toLocaleString('en-PK'),
+  date:       d => d ? new Date(d).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'}) : '-',
+  dateShort:  d => d ? new Date(d).toLocaleDateString('en-PK',{day:'2-digit',month:'short'}) : '-',
+  initials:   n => (n||'?').trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(),
+};
+function avatarColor(name) {
+  const c=['#2563eb','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2','#db2777'];
+  let h=0; for(let i=0;i<(name||'').length;i++) h=(h+name.charCodeAt(i)*31)%c.length;
+  return c[Math.abs(h)];
+}
+function uid(p) { return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+function partyBalance(partyId) {
+  const party = state.parties.find(p=>p.id===partyId);
+  let bal = party ? (party.openingBalance||0) : 0;
+  state.transactions.filter(t=>t.partyId===partyId).forEach(t => {
+    bal += t.type==='sale' ? (t.total-t.paid) : -(t.total-t.paid);
+  });
+  return bal;
+}
+function totalReceivable() { return state.parties.filter(p=>p.type==='customer').reduce((s,p)=>s+Math.max(0,partyBalance(p.id)),0); }
+function totalPayable()    { return state.parties.filter(p=>p.type==='supplier').reduce((s,p)=>s+Math.max(0,partyBalance(p.id)),0); }
+function todayTotals() {
+  const today = new Date().toISOString().slice(0,10);
+  const tx = state.transactions.filter(t=>t.date===today);
+  return { sales: tx.filter(t=>t.type==='sale').reduce((s,t)=>s+t.total,0), purchases: tx.filter(t=>t.type==='purchase').reduce((s,t)=>s+t.total,0) };
+}
+function showToast(msg, type='success') {
+  if (toastTimer) clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast '+type;
+  el.style.display = 'block';
+  toastTimer = setTimeout(()=>{el.style.display='none';}, 3000);
+}
+function goScreen(s) { currentScreen=s; renderApp(); }
+function openSheet(html, onMount) { sheetStack.push({html,onMount}); renderSheets(); if(onMount) setTimeout(onMount,40); }
+function closeSheet() { sheetStack.pop(); renderSheets(); }
+function closeAllSheets() { sheetStack=[]; renderSheets(); }
+
+// ─── LOGIN ───────────────────────────────────────────────────
+function renderLoginScreen() {
+  const co = state.company;
+  document.getElementById('app').innerHTML = `
+  <div class="full-screen">
+    <div class="center-card">
+      <div class="logo-area">${co.logo?`<img src="${co.logo}"/>`:'🏥'}</div>
+      <h1>${co.name||'MedCath Khata'}</h1>
+      <p>Sign in to continue</p>
+      <div class="login-field"><label>Username</label><input id="li-user" placeholder="admin" autocomplete="username"/></div>
+      <div class="login-field"><label>Password</label><input id="li-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
+      <p style="font-size:11px;color:var(--sub);margin-top:16px">Default: <strong>admin / admin123</strong></p>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>`;
+}
+function doLogin() {
+  const user = document.getElementById('li-user')?.value?.trim();
+  const pass = document.getElementById('li-pass')?.value;
+  const found = state.users.find(u=>u.username.toLowerCase()===user.toLowerCase()&&u.password===pass);
+  if (!found) { showToast('Invalid username or password','error'); return; }
+  session = { username:found.username, displayName:found.displayName, role:found.role };
+  LS.set('session', session);
+  showToast('Welcome, '+found.displayName+'!');
+  renderApp();
+}
+function doLogout() { session=null; LS.del('session'); goScreen('home'); }
+
+// ─── HOME ────────────────────────────────────────────────────
+function renderHome() {
+  const today = todayTotals();
+  const recent = [...state.transactions].filter(t=>!t.isPayment).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,8);
+  return `
+<div class="balance-banner">
+  <div class="balance-row">
+    <div class="balance-col"><div class="lbl">You'll Receive</div><div class="val" style="color:var(--green)">${fmt.money(totalReceivable())}</div></div>
+    <div class="balance-divider"></div>
+    <div class="balance-col"><div class="lbl">You'll Pay</div><div class="val" style="color:var(--red)">${fmt.money(totalPayable())}</div></div>
+  </div>
+</div>
+<div class="quick-actions">
+  <button class="qa-btn qa-sale" onclick="openTxSheet('sale')"><span class="ic">🧾</span>Add Sale</button>
+  <button class="qa-btn qa-purchase" onclick="openTxSheet('purchase')"><span class="ic">🛒</span>Add Purchase</button>
+</div>
+<div class="section-title">Today</div>
+<div class="list-card" style="margin-bottom:14px">
+  <div class="list-row" style="cursor:default"><div class="avatar" style="background:var(--green)">🧾</div><div class="list-main"><div class="t1">Sales</div></div><div class="list-amt"><div class="a1" style="color:var(--green)">${fmt.money(today.sales)}</div></div></div>
+  <div class="list-row" style="cursor:default"><div class="avatar" style="background:var(--red)">🛒</div><div class="list-main"><div class="t1">Purchases</div></div><div class="list-amt"><div class="a1" style="color:var(--red)">${fmt.money(today.purchases)}</div></div></div>
+</div>
+<div class="section-title">Recent <a onclick="goScreen('transactions')">View All</a></div>
+<div class="list-card">${recent.length?recent.map(txRow).join(''):'<div class="empty-state"><div class="ic">📋</div><p>No transactions yet.<br/>Tap Add Sale or Add Purchase.</p></div>'}</div>`;
+}
+function txRow(t) {
+  const p = state.parties.find(x=>x.id===t.partyId)||{name:'Unknown'};
+  const sale = t.type==='sale';
+  return `<div class="list-row" onclick="openTxDetail('${t.id}')">
+    <div class="avatar" style="background:${avatarColor(p.name)}">${fmt.initials(p.name)}</div>
+    <div class="list-main"><div class="t1">${p.name}</div><div class="t2">${fmt.dateShort(t.date)} · ${sale?'Sale':'Purchase'}${t.balance>0?' · Bal '+fmt.money(t.balance):''}</div></div>
+    <div class="list-amt"><div class="a1" style="color:${sale?'var(--green)':'var(--red)'}">${sale?'+':'-'}${fmt.money(t.total)}</div><div class="a2">${sale?'sale':'purchase'}</div></div></div>`;
+}
+
+// ─── PARTIES ─────────────────────────────────────────────────
+function renderParties(type) {
+  const search = document.getElementById('party-search')?.value?.toLowerCase()||'';
+  let list = state.parties.filter(p=>p.type===type);
+  if (search) list=list.filter(p=>p.name.toLowerCase().includes(search));
+  list = list.map(p=>({...p,bal:partyBalance(p.id)})).sort((a,b)=>Math.abs(b.bal)-Math.abs(a.bal));
+  return `
+<div class="tab-row">
+  <div class="tab-item${type==='customer'?' active':''}" onclick="state._pf='customer';goScreen('parties')">Customers</div>
+  <div class="tab-item${type==='supplier'?' active':''}" onclick="state._pf='supplier';goScreen('parties')">Suppliers</div>
+</div>
+<div class="search-box"><span class="si">🔍</span><input id="party-search" placeholder="Search…" oninput="rerenderScreen()" value="${search}"/></div>
+<div class="list-card">${list.length?list.map(p=>`
+  <div class="list-row" onclick="openPartyDetail('${p.id}')">
+    <div class="avatar" style="background:${avatarColor(p.name)}">${fmt.initials(p.name)}</div>
+    <div class="list-main"><div class="t1">${p.name}</div><div class="t2">${p.phone||'No phone'}</div></div>
+    <div class="list-amt"><div class="a1" style="color:${p.bal>0?(type==='customer'?'var(--green)':'var(--red)'):'var(--sub)'}">${fmt.money(p.bal)}</div><div class="a2">${p.bal===0?'settled':type==='customer'?'to receive':'to pay'}</div></div>
+  </div>`).join(''):`<div class="empty-state"><div class="ic">${type==='customer'?'🏥':'🚚'}</div><p>No ${type==='customer'?'customers':'suppliers'} yet.</p></div>`}</div>
+<div style="padding:0 14px"><button class="btn btn-primary" style="width:100%" onclick="openPartyForm(null,'${type}')">+ Add ${type==='customer'?'Customer':'Supplier'}</button></div>`;
+}
+function openPartyForm(editId, defType) {
+  const p = editId ? state.parties.find(x=>x.id===editId) : {type:defType||'customer'};
+  openSheet(`
+    <div class="sheet-header"><span class="close" onclick="closeSheet()">✕</span><h2>${editId?'Edit':'Add'} ${p.type==='customer'?'Customer':'Supplier'}</h2></div>
+    <div class="sheet-body">
+      <div class="f-group"><label>Name *</label><input id="pf-name" value="${p.name||''}"/></div>
+      <div class="f-group"><label>Type</label>
+        <div class="toggle-group">
+          <div class="toggle-btn${p.type==='customer'?' active in':''}" onclick="setPType('customer')">Customer</div>
+          <div class="toggle-btn${p.type==='supplier'?' active out':''}" onclick="setPType('supplier')">Supplier</div>
+        </div>
+        <input type="hidden" id="pf-type" value="${p.type||'customer'}"/>
+      </div>
+      <div class="f-group"><label>Phone</label><input id="pf-phone" value="${p.phone||''}"/></div>
+      <div class="f-group"><label>Opening Balance (Rs)</label><input id="pf-open" type="number" value="${p.openingBalance||0}"/></div>
+      <div class="f-group"><label>Notes</label><textarea id="pf-notes">${p.notes||''}</textarea></div>
+    </div>
+    <div class="sheet-footer"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="saveParty('${editId||''}')">Save</button></div>`);
+}
+function setPType(t) {
+  document.getElementById('pf-type').value=t;
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active','in','out'));
+  const btns=document.querySelectorAll('.toggle-btn');
+  if(t==='customer') btns[0].classList.add('active','in'); else btns[1].classList.add('active','out');
+}
+async function saveParty(editId) {
+  const name=document.getElementById('pf-name')?.value?.trim();
+  if (!name){showToast('Name required','error');return;}
+  const row={id:editId||uid('PT'),name,type:document.getElementById('pf-type')?.value||'customer',phone:document.getElementById('pf-phone')?.value||'',openingBalance:parseFloat(document.getElementById('pf-open')?.value||0),notes:document.getElementById('pf-notes')?.value||''};
+  if (editId){const i=state.parties.findIndex(p=>p.id===editId);if(i>=0)state.parties[i]={...state.parties[i],...row};}
+  else state.parties.push(row);
+  LS.set('state',state);
+  await pushToCloud('parties',row);
+  closeSheet();showToast(editId?'Updated!':'Added!');renderApp();
+}
+async function deleteParty(id) {
+  if (!confirm('Delete this party?')) return;
+  state.parties=state.parties.filter(p=>p.id!==id);
+  LS.set('state',state);
+  await deleteFromCloud('parties',id);
+  closeAllSheets();goScreen('parties');
+}
+function openPartyDetail(partyId) {
+  const p=state.parties.find(x=>x.id===partyId); if(!p) return;
+  const tx=state.transactions.filter(t=>t.partyId===partyId&&!t.isPayment).sort((a,b)=>b.date.localeCompare(a.date));
+  const bal=partyBalance(partyId); const isCust=p.type==='customer';
+  openSheet(`
+    <div class="sheet-header"><span class="close" onclick="closeSheet()">✕</span><h2>${p.name}</h2><span style="cursor:pointer;font-size:18px" onclick="openPartyForm('${p.id}')">✏️</span></div>
+    <div class="sheet-body">
+      <div class="balance-banner" style="margin:0 0 14px"><div class="balance-row"><div class="balance-col"><div class="lbl">${isCust?'To Receive':'To Pay'}</div><div class="val" style="color:${bal>0?(isCust?'var(--green)':'var(--red)'):'var(--sub)'}">${fmt.money(bal)}</div></div></div></div>
+      <div class="f-row" style="margin-bottom:14px">
+        <button class="btn ${isCust?'btn-green':'btn-red'}" onclick="closeSheet();openTxSheet('${isCust?'sale':'purchase'}','${p.id}')">+ New ${isCust?'Sale':'Purchase'}</button>
+        <button class="btn btn-ghost" onclick="openPaymentSheet('${p.id}')">💵 Payment</button>
+      </div>
+      <div class="section-title" style="padding:0 0 8px">History</div>
+      <div class="list-card">${tx.length?tx.map(t=>`
+        <div class="list-row" onclick="openTxDetail('${t.id}')">
+          <div class="avatar" style="background:${t.type==='sale'?'var(--green)':'var(--red)'}">${t.type==='sale'?'🧾':'🛒'}</div>
+          <div class="list-main"><div class="t1">${t.type==='sale'?'Sale':'Purchase'} · ${(t.items||[]).length} item${(t.items||[]).length!==1?'s':''}</div><div class="t2">${fmt.date(t.date)}${t.balance>0?' · Pending '+fmt.money(t.balance):' · Paid'}</div></div>
+          <div class="list-amt"><div class="a1" style="color:${t.type==='sale'?'var(--green)':'var(--red)'}">${fmt.money(t.total)}</div></div>
+        </div>`).join(''):`<div class="empty-state"><div class="ic">📋</div><p>No transactions yet.</p></div>`}</div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:14px;color:var(--red)" onclick="deleteParty('${p.id}')">🗑 Delete</button>
+    </div>`);
+}
+function openPaymentSheet(partyId) {
+  const p=state.parties.find(x=>x.id===partyId); const bal=partyBalance(partyId);
+  openSheet(`
+    <div class="sheet-header"><span class="close" onclick="closeSheet()">✕</span><h2>Record Payment</h2></div>
+    <div class="sheet-body">
+      <p style="font-size:13px;color:var(--sub);margin-bottom:14px">${p.name} — balance: <strong>${fmt.money(bal)}</strong></p>
+      <div class="f-group"><label>Amount (Rs)</label><input id="pay-amt" type="number" placeholder="0"/></div>
+      <div class="f-group"><label>Date</label><input id="pay-date" type="date" value="${new Date().toISOString().slice(0,10)}"/></div>
+      <div class="f-group"><label>Note</label><input id="pay-note" placeholder="Bank transfer, cheque #…"/></div>
+    </div>
+    <div class="sheet-footer"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="savePayment('${partyId}')">Save</button></div>`);
+}
+async function savePayment(partyId) {
+  const amount=parseFloat(document.getElementById('pay-amt')?.value||0);
+  if (!amount||amount<=0){showToast('Enter a valid amount','error');return;}
+  const p=state.parties.find(x=>x.id===partyId);
+  const row={id:uid('TX'),partyId,type:p.type==='customer'?'sale':'purchase',date:document.getElementById('pay-date')?.value||new Date().toISOString().slice(0,10),items:[],total:0,paid:-amount,balance:-amount,notes:'Payment: '+(document.getElementById('pay-note')?.value||''),isPayment:true};
+  state.transactions.push(row);
+  LS.set('state',state);
+  await pushToCloud('transactions',row);
+  closeSheet();showToast('Payment recorded!');goScreen('home');
+}
+
+// ─── TRANSACTIONS ────────────────────────────────────────────
+function renderTransactionsList() {
+  const search=document.getElementById('tx-search')?.value?.toLowerCase()||'';
+  let tx=[...state.transactions].filter(t=>!t.isPayment).sort((a,b)=>b.date.localeCompare(a.date));
+  if (_txFilter!=='all') tx=tx.filter(t=>t.type===_txFilter);
+  if (search) tx=tx.filter(t=>{const p=state.parties.find(p=>p.id===t.partyId);return p&&p.name.toLowerCase().includes(search);});
+  const totalIn=tx.filter(t=>t.type==='sale').reduce((s,t)=>s+t.total,0);
+  const totalOut=tx.filter(t=>t.type==='purchase').reduce((s,t)=>s+t.total,0);
+  return `
+<div class="search-box"><span class="si">🔍</span><input id="tx-search" placeholder="Search by party…" oninput="rerenderScreen()" value="${search}"/></div>
+<div class="tab-row">
+  <div class="tab-item${_txFilter==='all'?' active':''}" onclick="_txFilter='all';rerenderScreen()">All</div>
+  <div class="tab-item${_txFilter==='sale'?' active':''}" onclick="_txFilter='sale';rerenderScreen()">Sales</div>
+  <div class="tab-item${_txFilter==='purchase'?' active':''}" onclick="_txFilter='purchase';rerenderScreen()">Purchases</div>
+</div>
+<div class="balance-banner"><div class="balance-row">
+  <div class="balance-col"><div class="lbl">Sales</div><div class="val" style="color:var(--green)">${fmt.money(totalIn)}</div></div>
+  <div class="balance-divider"></div>
+  <div class="balance-col"><div class="lbl">Purchases</div><div class="val" style="color:var(--red)">${fmt.money(totalOut)}</div></div>
+</div></div>
+<div class="list-card">${tx.length?tx.map(txRow).join(''):'<div class="empty-state"><div class="ic">📋</div><p>No transactions found.</p></div>'}</div>`;
+}
+
+// ─── ADD SALE / PURCHASE ──────────────────────────────────────
+function openTxSheet(type, presetPartyId) {
+  txItemCount=0;
+  const isSale=type==='sale';
+  const parties=state.parties.filter(p=>isSale?p.type==='customer':p.type==='supplier');
+  const pOpts=parties.map(p=>`<option value="${p.id}"${presetPartyId===p.id?' selected':''}>${p.name}</option>`).join('');
+  openSheet(`
+    <div class="sheet-header"><span class="close" onclick="closeSheet()">✕</span><h2>${isSale?'New Sale':'New Purchase'}</h2></div>
+    <div class="sheet-body">
+      <div class="f-group"><label>${isSale?'Customer':'Supplier'} *</label><select id="tx-party"><option value="">-- Select --</option>${pOpts}</select></div>
+      <button class="btn-sm btn-ghost" style="margin-bottom:14px" onclick="openPartyForm(null,'${isSale?'customer':'supplier'}')">+ New ${isSale?'Customer':'Supplier'}</button>
+      <div class="f-group"><label>Date</label><input id="tx-date" type="date" value="${new Date().toISOString().slice(0,10)}"/></div>
+      <div class="section-title" style="padding:0 0 8px">Items</div>
+      <div id="tx-items-container"></div>
+      <button class="add-item-btn" onclick="addTxItem('${type}')">+ Add Item</button>
+      <div class="total-box"><div class="total-row grand"><span>Total</span><span id="tx-total">Rs 0</span></div></div>
+      <div class="f-group" style="margin-top:14px"><label>Paid Now (Rs)</label><input id="tx-paid" type="number" value="0" oninput="updateTxBal()"/></div>
+      <div class="f-group"><label>Balance</label><input id="tx-bal-disp" disabled value="Rs 0" style="background:#f1f5f9"/></div>
+      <div class="f-group"><label>Notes</label><textarea id="tx-notes" placeholder="Consultant, procedure, ref no…"></textarea></div>
+    </div>
+    <div class="sheet-footer"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn ${isSale?'btn-green':'btn-red'}" onclick="saveTx('${type}')">Save & Bill</button></div>`,
+    ()=>addTxItem(type));
+}
+function addTxItem(type) {
+  const c=document.getElementById('tx-items-container'); if(!c)return;
+  const i=txItemCount++;
+  const pOpts=state.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')+`<option value="__custom__">+ Custom item…</option>`;
+  const div=document.createElement('div');
+  div.className='item-row';div.id=`tx-item-${i}`;
+  div.innerHTML=`
+    <div class="item-row-top">
+      <select id="ti-pid-${i}" onchange="onItemChange(${i},'${type}')">${pOpts}</select>
+      <button class="btn-sm btn-ghost" onclick="document.getElementById('tx-item-${i}').remove();calcTxTotal()">✕</button>
+    </div>
+    <input id="ti-name-${i}" placeholder="Item name" style="display:none;width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:13px"/>
+    <div class="item-row-bottom">
+      <input id="ti-qty-${i}" type="number" min="1" value="1" style="width:60px" oninput="calcItemSub(${i})"/>
+      <input id="ti-price-${i}" type="number" placeholder="Price" style="width:100px" oninput="calcItemSub(${i})"/>
+      <span id="ti-sub-${i}" class="item-sub">Rs 0</span>
+    </div>`;
+  c.appendChild(div);
+  onItemChange(i,type);
+}
+function onItemChange(i,type) {
+  const pid=document.getElementById(`ti-pid-${i}`)?.value;
+  const ni=document.getElementById(`ti-name-${i}`);
+  const pi=document.getElementById(`ti-price-${i}`);
+  if (pid==='__custom__'){if(ni)ni.style.display='block';if(pi)pi.value='';}
+  else {
+    if(ni)ni.style.display='none';
+    const prod=state.products.find(p=>p.id===pid);
+    if(prod&&pi&&!pi.value) pi.value=type==='sale'?prod.defaultPrice:prod.defaultCost;
+  }
+  calcItemSub(i);
+}
+function calcItemSub(i) {
+  const q=parseFloat(document.getElementById(`ti-qty-${i}`)?.value||0);
+  const p=parseFloat(document.getElementById(`ti-price-${i}`)?.value||0);
+  const el=document.getElementById(`ti-sub-${i}`);
+  if(el)el.textContent=fmt.money(q*p);
+  calcTxTotal();
+}
+function calcTxTotal() {
+  const c=document.getElementById('tx-items-container'); if(!c)return;
+  let total=0;
+  c.querySelectorAll('[id^="ti-qty-"]').forEach(el=>{
+    const i=el.id.split('-').pop();
+    total+=parseFloat(document.getElementById(`ti-qty-${i}`)?.value||0)*parseFloat(document.getElementById(`ti-price-${i}`)?.value||0);
+  });
+  const te=document.getElementById('tx-total');
+  if(te)te.textContent=fmt.money(total);
+  updateTxBal(total);
+}
+function updateTxBal(total) {
+  if(total===undefined){const t=document.getElementById('tx-total')?.textContent||'Rs 0';total=parseFloat(t.replace(/[^0-9.]/g,''))||0;}
+  const paid=parseFloat(document.getElementById('tx-paid')?.value||0);
+  const el=document.getElementById('tx-bal-disp');
+  if(el)el.value=fmt.moneySgn(total-paid);
+}
+async function saveTx(type) {
+  const partyId=document.getElementById('tx-party')?.value;
+  if(!partyId){showToast('Select a '+(type==='sale'?'customer':'supplier'),'error');return;}
+  const date=document.getElementById('tx-date')?.value||new Date().toISOString().slice(0,10);
+  const c=document.getElementById('tx-items-container');
+  const items=[];let total=0;
+  c?.querySelectorAll('[id^="ti-qty-"]').forEach(el=>{
+    const i=el.id.split('-').pop();
+    const pid=document.getElementById(`ti-pid-${i}`)?.value;
+    const qty=parseFloat(document.getElementById(`ti-qty-${i}`)?.value||0);
+    const price=parseFloat(document.getElementById(`ti-price-${i}`)?.value||0);
+    if(!qty||!price)return;
+    let name,productId=null,cost=price;
+    if(pid==='__custom__') name=document.getElementById(`ti-name-${i}`)?.value||'Item';
+    else {const pr=state.products.find(p=>p.id===pid);name=pr?pr.name:'Item';productId=pid;cost=pr?pr.defaultCost:price;}
+    items.push({productId,name,qty,price,cost});
+    total+=qty*price;
+    if(productId){const pi=state.products.findIndex(x=>x.id===productId);if(pi>=0){const p=state.products[pi];p.stock=type==='sale'?Math.max(0,(p.stock||0)-qty):(p.stock||0)+qty;pushToCloud('products',p);}}
+  });
+  if(!items.length){showToast('Add at least one item','error');return;}
+  const paid=parseFloat(document.getElementById('tx-paid')?.value||0);
+  const balance=total-paid;
+  const row={id:uid('TX'),partyId,type,date,items,total,paid,balance,notes:document.getElementById('tx-notes')?.value||'',isPayment:false};
+  state.transactions.push(row);
+  LS.set('state',state);
+  await pushToCloud('transactions',row);
+  closeSheet();showToast(type==='sale'?'Sale saved!':'Purchase saved!');
+  setTimeout(()=>openTxDetail(row.id),250);
+  renderApp();
+}
+
+// ─── TX DETAIL / BILL ────────────────────────────────────────
+function openTxDetail(txId) {
+  const t=state.transactions.find(x=>x.id===txId); if(!t)return;
+  if(t.isPayment){showToast('Payment record','info');return;}
+  const p=state.parties.find(x=>x.id===t.partyId)||{name:'Unknown'};
+  const bill=genBill(t,p);
+  openSheet(`
+    <div class="sheet-header"><span class="close" onclick="closeSheet()">✕</span><h2>${t.type==='sale'?'Sale':'Purchase'} Bill</h2></div>
+    <div class="sheet-body" style="background:#f1f5f9;padding:8px;border-radius:12px">${bill}</div>
+    <div class="sheet-footer">
+      <button class="btn btn-ghost" onclick="printBill('${txId}')">🖨 Print</button>
+      <button class="btn btn-primary" onclick="dlBill('${txId}')">⬇ Download</button>
+      <button class="btn btn-ghost" style="flex:none;color:var(--red)" onclick="deleteTx('${txId}')">🗑</button>
+    </div>`);
+}
+function genBill(t,p) {
+  const co=state.company; const isSale=t.type==='sale';
+  const rows=(t.items||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${it.name}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${fmt.money(it.price)}</td><td style="text-align:right"><strong>${fmt.money(it.qty*it.price)}</strong></td></tr>`).join('');
+  return `<div class="bill-doc">
+  <div class="bill-doc-header">${co.logo?`<img src="${co.logo}"/><br/>`:''}
+    <h2>${co.name}</h2><p>${co.address||''}</p><p>${co.phone||''}</p>
+  </div>
+  <div class="bill-doc-meta"><div><strong>${isSale?'SALES INVOICE':'PURCHASE BILL'}</strong><br/>${isSale?'Bill To':'Vendor'}: ${p.name}</div><div style="text-align:right">Date: ${fmt.date(t.date)}<br/>Ref: ${t.id}</div></div>
+  <table><thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="font-size:12px;margin-bottom:6px">Paid: ${fmt.money(t.paid)} | Balance: ${fmt.money(t.balance)}</div>
+  <div class="bill-doc-total">Total: ${fmt.money(t.total)}</div>
+  ${t.notes?`<p style="font-size:11px;color:#666;margin-top:10px">Note: ${t.notes}</p>`:''}
+</div>`;
+}
+function printBill(txId) {
+  const t=state.transactions.find(x=>x.id===txId);
+  const p=state.parties.find(x=>x.id===t.partyId)||{name:''};
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th{background:#1e40af;color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:1px solid #eee}.bill-doc-header{text-align:center;border-bottom:2px solid #1e40af;padding-bottom:12px;margin-bottom:14px}.bill-doc-header h2{color:#1e40af}.bill-doc-header img{height:40px}.bill-doc-total{text-align:right;font-size:16px;font-weight:800;color:#1e40af;border-top:2px solid #1e40af;padding-top:8px}.bill-doc-meta{display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px}</style></head><body>${genBill(t,p)}</body></html>`);
+  w.document.close();w.print();
+}
+function dlBill(txId) {
+  const t=state.transactions.find(x=>x.id===txId);
+  const p=state.parties.find(x=>x.id===t.partyId)||{name:''};
+  const blob=new Blob([`<!DOCTYPE html><html><head><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th{background:#1e40af;color:#fff;padding:8px}td{padding:8px;border-bottom:1px solid #eee}</style></head><body>${genBill(t,p)}</body></html>`],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(t.type==='sale'?'Sale_':'Purchase_')+t.id+'.html';a.click();
+  showToast('Downloaded!');
+}
+async function deleteTx(txId) {
+  if(!confirm('Delete this transaction?'))return;
+  state.transactions=state.transactions.filter(t=>t.id!==txId);
+  LS.set('state',state);
+  await deleteFromCloud('transactions',txId);
+  closeAllSheets();showToast('Deleted','info');renderApp();
+}
+
+// ─── PRODUCTS ─────────────────────────────────────────────────
+function renderProducts() {
+  const search=document.getElementById('prod-search')?.value?.toLowerCase()||'';
+  let prods=[...state.products];
+  if(search)prods=prods.filter(p=>p.name.toLowerCase().includes(search));
+  return `
+<div class="search-box"><span class="si">🔍</span><input id="prod-search" placeholder="Search products…" oninput="rerenderScreen()" value="${search}"/></div>
+<div class="list-card">${prods.length?prods.map(p=>`
+  <div class="list-row" onclick="openProductForm('${p.id}')">
+    <div class="avatar" style="background:${avatarColor(p.name)}">📦</div>
+    <div class="list-main"><div class="t1">${p.name}</div><div class="t2">Cost ${fmt.money(p.defaultCost)} → Sell ${fmt.money(p.defaultPrice)}</div></div>
+    <div class="list-amt"><div class="a1" style="color:${(p.stock||0)<=3?'var(--red)':'var(--ink)'}">${p.stock||0}</div><div class="a2">${p.unit||'pcs'}</div></div>
+  </div>`).join(''):'<div class="empty-state"><div class="ic">📦</div><p>No products yet.</p></div>'}</div>
+<div style="padding:0 14px"><button class="btn btn-primary" style="width:100%" onclick="openProductForm(null)">+ Add Product</button></div>`;
+}
+function openProductForm(editId) {
+  const p=editId?state.products.find(x=>x.id===editId):{};
+  openSheet(`
+    <div class="sheet-header"><span class="close" onclick="closeSheet()">✕</span><h2>${editId?'Edit':'Add'} Product</h2></div>
+    <div class="sheet-body">
+      <div class="f-group"><label>Name *</label><input id="pr-name" value="${p.name||''}"/></div>
+      <div class="f-row"><div class="f-group"><label>Unit</label><input id="pr-unit" value="${p.unit||'Piece'}"/></div><div class="f-group"><label>Stock</label><input id="pr-stock" type="number" value="${p.stock||0}"/></div></div>
+      <div class="f-row"><div class="f-group"><label>Cost Price</label><input id="pr-cost" type="number" value="${p.defaultCost||''}"/></div><div class="f-group"><label>Selling Price</label><input id="pr-price" type="number" value="${p.defaultPrice||''}"/></div></div>
+    </div>
+    <div class="sheet-footer"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="saveProduct('${editId||''}')">Save</button>${editId?`<button class="btn-sm btn-ghost" style="color:var(--red)" onclick="deleteProduct('${editId}')">🗑</button>`:''}</div>`);
+}
+async function saveProduct(editId) {
+  const name=document.getElementById('pr-name')?.value?.trim();
+  if(!name){showToast('Name required','error');return;}
+  const row={id:editId||uid('PR'),name,unit:document.getElementById('pr-unit')?.value||'Piece',stock:parseFloat(document.getElementById('pr-stock')?.value||0),defaultCost:parseFloat(document.getElementById('pr-cost')?.value||0),defaultPrice:parseFloat(document.getElementById('pr-price')?.value||0)};
+  if(editId){const i=state.products.findIndex(p=>p.id===editId);if(i>=0)state.products[i]={...state.products[i],...row};}
+  else state.products.push(row);
+  LS.set('state',state);
+  await pushToCloud('products',row);
+  closeSheet();showToast(editId?'Updated!':'Added!');goScreen('products');
+}
+async function deleteProduct(id) {
+  if(!confirm('Delete this product?'))return;
+  state.products=state.products.filter(p=>p.id!==id);
+  LS.set('state',state);
+  await deleteFromCloud('products',id);
+  closeAllSheets();goScreen('products');
+}
+
+// ─── REPORTS ─────────────────────────────────────────────────
+function renderReports() {
+  const sales=state.transactions.filter(t=>t.type==='sale'&&!t.isPayment);
+  const purchases=state.transactions.filter(t=>t.type==='purchase'&&!t.isPayment);
+  const tSales=sales.reduce((s,t)=>s+t.total,0);
+  const tPurchases=purchases.reduce((s,t)=>s+t.total,0);
+  let tProfit=0; sales.forEach(t=>(t.items||[]).forEach(it=>{tProfit+=(it.price-(it.cost||0))*it.qty;}));
+  return `
+<div class="balance-banner"><div class="balance-row">
+  <div class="balance-col"><div class="lbl">Total Sales</div><div class="val">${fmt.money(tSales)}</div></div>
+  <div class="balance-divider"></div>
+  <div class="balance-col"><div class="lbl">Total Purchases</div><div class="val">${fmt.money(tPurchases)}</div></div>
+</div></div>
+<div class="balance-banner"><div class="balance-row">
+  <div class="balance-col"><div class="lbl">Gross Profit</div><div class="val" style="color:var(--green)">${fmt.money(tProfit)}</div></div>
+  <div class="balance-divider"></div>
+  <div class="balance-col"><div class="lbl">To Receive</div><div class="val" style="color:var(--yellow)">${fmt.money(totalReceivable())}</div></div>
+</div></div>
+<div style="padding:0 14px">
+  <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="exportCSV()">⬇ Export CSV</button>
+  <button class="btn btn-ghost" style="width:100%;margin-bottom:10px" onclick="fullSync().then(()=>showToast('Synced!'))">🔄 Force Sync Now</button>
+  <button class="btn btn-ghost" style="width:100%" onclick="goScreen('settings')">⚙️ Settings</button>
+</div>`;
+}
+function exportCSV() {
+  const rows=state.transactions.filter(t=>!t.isPayment).map(t=>{const p=state.parties.find(p=>p.id===t.partyId)||{name:'Unknown'};return [t.date,t.type,p.name,(t.items||[]).map(i=>i.name+' x'+i.qty).join('; '),t.total,t.paid,t.balance,t.notes||''];});
+  const csv=[['Date','Type','Party','Items','Total','Paid','Balance','Notes'].join(','),...rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='MedCathKhata_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  showToast('CSV exported!');
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────
+function renderSettings() {
+  const co=state.company;
+  return `
+<div class="list-card" style="margin-top:14px">
+  <div style="padding:16px">
+    <div class="section-title" style="padding:0 0 10px">Branding</div>
+    <div class="f-group"><label>Software / Business Name</label><input id="co-name" value="${co.name||''}"/></div>
+    <div class="f-group"><label>Logo</label>
+      <div class="logo-upload-box" onclick="document.getElementById('logo-inp').click()">
+        ${co.logo?`<img src="${co.logo}"/>`:'<span style="color:var(--sub);font-size:13px">Tap to upload logo</span>'}
+      </div>
+      <input id="logo-inp" type="file" accept="image/*" style="display:none" onchange="uploadLogo(this)"/>
+      ${co.logo?`<button class="btn-sm btn-ghost" style="margin-top:6px" onclick="removeLogo()">Remove Logo</button>`:''}
+    </div>
+    <div class="f-group"><label>Phone</label><input id="co-phone" value="${co.phone||''}"/></div>
+    <div class="f-group"><label>Address</label><input id="co-addr" value="${co.address||''}"/></div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveBranding()">Save Branding</button>
+  </div>
+</div>
+<div class="list-card">
+  <div style="padding:16px">
+    <div class="section-title" style="padding:0 0 10px">User Logins</div>
+    ${state.users.map(u=>`
+      <div class="list-row" style="cursor:default;padding:10px 0">
+        <div class="avatar" style="background:${avatarColor(u.username)};width:32px;height:32px;font-size:12px">${fmt.initials(u.displayName||u.username)}</div>
+        <div class="list-main"><div class="t1">${u.displayName||u.username}</div><div class="t2">@${u.username} · ${u.role}</div></div>
+        ${u.username!=='admin'?`<button class="btn-sm btn-ghost" onclick="deleteUser('${u.username}')">🗑</button>`:''}
+      </div>`).join('')}
+    <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="openAddUserSheet()">+ Add Login</button>
+  </div>
+</div>
+<div class="list-card">
+  <div style="padding:16px">
+    <div class="section-title" style="padding:0 0 6px">Cloud Sync</div>
+    <p style="font-size:12px;color:${CONFIGURED?'var(--green)':'var(--yellow)'};font-weight:600;margin-bottom:10px">${CONFIGURED?'☁ Connected to Supabase':'⚠ Not configured — running in local mode'}</p>
+    <p style="font-size:12px;color:var(--sub);margin-bottom:10px">Data syncs automatically to Supabase on every save. Works on all your PCs and phones simultaneously.</p>
+    <button class="btn btn-ghost" style="width:100%;margin-bottom:8px" onclick="fullSync().then(()=>showToast('Synced from cloud!'))">🔄 Sync Now</button>
+    <button class="btn btn-ghost" style="width:100%;margin-bottom:8px" onclick="downloadBackup()">⬇ Download Backup (.json)</button>
+    <label class="btn btn-ghost" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:8px">📂 Restore Backup<input type="file" accept=".json" style="display:none" onchange="restoreBackup(this)"/></label>
+    <button class="btn btn-ghost" style="width:100%;color:var(--red)" onclick="eraseAll()">⚠ Erase All Data</button>
+  </div>
+</div>
+<div style="padding:0 14px 14px"><button class="btn btn-ghost" style="width:100%" onclick="doLogout()">🚪 Log Out (${session?.displayName||''})</button></div>`;
+}
+async function saveBranding() {
+  state.company.name=document.getElementById('co-name')?.value||state.company.name;
+  state.company.phone=document.getElementById('co-phone')?.value||'';
+  state.company.address=document.getElementById('co-addr')?.value||'';
+  await saveSettings();showToast('Saved!');renderApp();
+}
+function uploadLogo(input) {
+  const file=input.files[0]; if(!file)return;
+  if(file.size>500*1024){showToast('Please use an image under 500KB','error');return;}
+  const r=new FileReader();
+  r.onload=async e=>{state.company.logo=e.target.result;await saveSettings();showToast('Logo updated!');goScreen('settings');};
+  r.readAsDataURL(file);
+}
+async function removeLogo() { state.company.logo='';await saveSettings();showToast('Removed','info');goScreen('settings'); }
+function openAddUserSheet() {
+  openSheet(`
+    <div class="sheet-header"><span class="close" onclick="closeSheet()">✕</span><h2>Add Login</h2></div>
+    <div class="sheet-body">
+      <div class="f-group"><label>Display Name</label><input id="nu-dn" placeholder="e.g. Sales Staff"/></div>
+      <div class="f-group"><label>Username *</label><input id="nu-un" placeholder="e.g. staff1"/></div>
+      <div class="f-group"><label>Password *</label><input id="nu-pw" type="password"/></div>
+      <div class="f-group"><label>Role</label><select id="nu-role"><option value="staff">Staff</option><option value="manager">Manager</option><option value="owner">Owner</option></select></div>
+    </div>
+    <div class="sheet-footer"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="addUser()">Add</button></div>`);
+}
+async function addUser() {
+  const un=document.getElementById('nu-un')?.value?.trim();
+  const pw=document.getElementById('nu-pw')?.value;
+  const dn=document.getElementById('nu-dn')?.value?.trim()||un;
+  const role=document.getElementById('nu-role')?.value||'staff';
+  if(!un||!pw){showToast('Username and password required','error');return;}
+  if(state.users.some(u=>u.username.toLowerCase()===un.toLowerCase())){showToast('Username already exists','error');return;}
+  state.users.push({username:un,password:pw,displayName:dn,role});
+  await saveSettings();closeSheet();showToast('Login added!');goScreen('settings');
+}
+async function deleteUser(un) {
+  if(!confirm('Remove this login?'))return;
+  state.users=state.users.filter(u=>u.username!==un);
+  await saveSettings();goScreen('settings');
+}
+function downloadBackup() {
+  const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),data:state},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='MedCathKhata_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  showToast('Backup downloaded!');
+}
+function restoreBackup(input) {
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=async e=>{
+    try{const p=JSON.parse(e.target.result);const d=p.data||p;if(!confirm('Replace ALL current data?'))return;state=d;LS.set('state',state);await saveSettings();showToast('Restored!');goScreen('home');}
+    catch(e){showToast('Invalid file','error');}
+  };r.readAsText(file);
+}
+async function eraseAll() {
+  if(!confirm('Erase ALL data?'))return;
+  if(!confirm('Are you sure? Cannot be undone.'))return;
+  state={...state,parties:[],products:[],transactions:[]};
+  LS.set('state',state);showToast('Erased','info');goScreen('home');
+}
+
+// ─── RENDER ENGINE ────────────────────────────────────────────
+const TITLES={home:'',parties:'Parties',transactions:'Transactions',products:'Products & Stock',reports:'Reports',settings:'Settings'};
+function rerenderScreen() {
+  const m=document.getElementById('main-scroll');
+  if(m)m.innerHTML=screenContent();
+}
+function screenContent() {
+  switch(currentScreen){
+    case 'home':         return renderHome();
+    case 'parties':      return renderParties(state._pf||'customer');
+    case 'transactions': return renderTransactionsList();
+    case 'products':     return renderProducts();
+    case 'reports':      return renderReports();
+    case 'settings':     return renderSettings();
+    default:             return renderHome();
+  }
+}
+function renderApp() {
+  if(!session){renderLoginScreen();return;}
+  const co=state.company;
+  const syncBadgeLabels={ok:'☁ Synced',ing:'⟳ Syncing…',err:'⚠ Offline',off:'● Local'};
+  document.getElementById('app').innerHTML=`
+    <div class="app">
+      <div class="topbar">
+        ${currentScreen!=='home'?`<span class="back" onclick="goScreen('home')">←</span>`:''}
+        <div class="topbar-title">
+          <h1>${co.logo?`<img src="${co.logo}"/>`:''}${currentScreen==='home'?(co.name||'MedCath Khata'):(TITLES[currentScreen]||'')}</h1>
+          ${currentScreen==='home'?`<div class="sub">${session.displayName}</div>`:''}
+        </div>
+        <span id="sync-badge" class="sync-badge ${syncStatus}">${syncBadgeLabels[syncStatus]||''}</span>
+        <span class="topbar-icon" onclick="goScreen('settings')">⚙️</span>
+      </div>
+      <div class="scroll" id="main-scroll">${screenContent()}</div>
+      <div class="bottomnav">
+        <div class="bn-item${currentScreen==='home'?' active':''}" onclick="goScreen('home')"><span class="ic">🏠</span>Home</div>
+        <div class="bn-item${currentScreen==='parties'?' active':''}" onclick="state._pf=state._pf||'customer';goScreen('parties')"><span class="ic">👥</span>Parties</div>
+        <div class="bn-item${currentScreen==='transactions'?' active':''}" onclick="goScreen('transactions')"><span class="ic">🧾</span>History</div>
+        <div class="bn-item${currentScreen==='products'?' active':''}" onclick="goScreen('products')"><span class="ic">📦</span>Stock</div>
+        <div class="bn-item${currentScreen==='reports'?' active':''}" onclick="goScreen('reports')"><span class="ic">📊</span>Reports</div>
+      </div>
+    </div>
+    <div id="sheets-root"></div>
+    <div id="toast" class="toast"></div>`;
+  renderSheets();
+}
+function renderSheets() {
+  const root=document.getElementById('sheets-root');if(!root)return;
+  if(!sheetStack.length){root.innerHTML='';return;}
+  root.innerHTML=sheetStack.map((s,i)=>`<div class="sheet-overlay" style="z-index:${200+i}" onclick="handleOvClick(event)"><div class="sheet" onclick="event.stopPropagation()">${s.html}</div></div>`).join('');
+  const last=sheetStack[sheetStack.length-1];
+  if(last.onMount)setTimeout(last.onMount,40);
+}
+function handleOvClick(e){if(e.target.classList.contains('sheet-overlay'))closeSheet();}
+
+// Expose all to global scope
+Object.assign(window,{
+  goScreen,openSheet,closeSheet,closeAllSheets,rerenderScreen,handleOvClick,
+  openTxSheet,addTxItem,onItemChange,calcItemSub,calcTxTotal,updateTxBal,saveTx,
+  openTxDetail,printBill,dlBill,deleteTx,
+  openPartyForm,setPType,saveParty,deleteParty,openPartyDetail,openPaymentSheet,savePayment,
+  openProductForm,saveProduct,deleteProduct,
+  renderSettings,saveBranding,uploadLogo,removeLogo,openAddUserSheet,addUser,deleteUser,
+  downloadBackup,restoreBackup,eraseAll,doLogout,doLogin,
+  exportCSV,fullSync,
+  copySQL,copyRLS,saveSetupAndContinue,skipSetup,
+});
+
+boot();
+</script>
+
+
+</body></html>
