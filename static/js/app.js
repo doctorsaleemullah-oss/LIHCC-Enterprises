@@ -12,6 +12,8 @@
     ["vitals", "Vitals", "pulse"],
     ["consultation", "Consultation", "steth"],
     ["patients", "Patients", "people"],
+    ["prescriptions", "Prescriptions", "rx"],
+    ["billing", "Billing", "bill"],
     ["investigations", "Investigations", "flask"],
     ["analytics", "Analytics", "chart"],
     ["staff", "Staff Accounts", "badge"],
@@ -33,6 +35,7 @@
     plus: '<path d="M12 5v14M5 12h14"/>',
     rx: '<path d="M5 5h8l6 6v8H5z"/><path d="M13 5v6h6M8 14h6M8 17h4"/>',
     phone: '<path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6L17 13l4 1.5v3A2 2 0 0 1 19 20 16 16 0 0 1 4 5a2 2 0 0 1 2.5-1.5z"/>',
+    bill: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
   };
 
   const svg = (name, size = 18) =>
@@ -85,9 +88,24 @@
   }
   function todayAppts() {
     const t = todayISO();
-    return store.data.appointments
+    const today = store.data.appointments
       .filter((a) => a.date === t)
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    if (today.length) return today;
+    return [...store.data.appointments].sort((a, b) =>
+      String(b.date + b.time).localeCompare(String(a.date + a.time))
+    );
+  }
+  function queueVisits() {
+    const today = todayVisits();
+    if (today.length) return today;
+    return [...store.data.visits].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12);
+  }
+  function money(n) {
+    return "Rs " + Math.abs(Number(n) || 0).toLocaleString("en-PK");
+  }
+  function bills() {
+    return store.data.billing || [];
   }
   function nextToken() {
     const vis = todayVisits();
@@ -168,30 +186,36 @@
   function rightPanel() {
     if (store.view !== "dashboard") return "";
     const appts = todayAppts();
+    const heading = appts.some((a) => a.date === todayISO()) ? "Today's Appointments" : "Recent Appointments";
     const rows = appts.length
       ? appts
           .map((a) => {
             const p = patient(a.patientId);
             return `<div class="tl">
-              <div class="t">${esc(a.time)}</div>
+              <div class="t">${esc(a.timeLabel || a.time)}${a.date !== todayISO() ? ` · ${esc(a.date)}` : ""}</div>
               <div class="n">${esc(p.name)}</div>
-              <div class="r">${esc(a.reason || staff(a.doctorId).name)}</div>
+              <div class="r">${esc(a.reason || a.type || staff(a.doctorId).name)} · ${esc(a.status || "")}</div>
             </div>`;
           })
           .join("")
-      : `<div class="empty">No appointments today</div>`;
+      : `<div class="empty">No appointments on file</div>`;
     return `<aside class="right">
-      <h3>Upcoming Appointments</h3>
+      <h3>${heading}</h3>
       <div class="timeline">${rows}</div>
     </aside>`;
   }
 
   function badgeType(t) {
-    return t === "Follow-up" ? "follow" : "new";
+    const x = String(t || "").toLowerCase();
+    if (x.includes("follow")) return "follow";
+    if (x.includes("ecg") || x.includes("echo") || x.includes("holter")) return "pending";
+    return "new";
   }
   function badgeStatus(s) {
-    if (s === "Completed") return "done";
-    if (s === "In Progress") return "prog";
+    const x = String(s || "");
+    if (x === "Completed" || x === "Paid" || x === "Confirmed") return "done";
+    if (x === "In Progress") return "prog";
+    if (x === "Pending") return "pending";
     return "wait";
   }
 
@@ -230,13 +254,16 @@
   }
 
   function viewDashboard() {
-    const vis = todayVisits();
-    const waiting = vis.filter((v) => v.status === "Waiting").length;
+    const vis = queueVisits();
+    const today = todayVisits();
+    const live = today.length > 0;
+    const waiting = vis.filter((v) => v.status === "Waiting" || v.status === "Pending").length;
     const progress = vis.filter((v) => v.status === "In Progress").length;
-    const done = vis.filter((v) => v.status === "Completed").length;
+    const done = vis.filter((v) => v.status === "Completed" || v.status === "Confirmed").length;
     const pendingInv = store.data.investigations.filter((i) => i.status !== "Completed").length;
+    const pendingBills = bills().filter((b) => b.status !== "Paid").length;
     const neu = vis.filter((v) => v.type === "New").length;
-    const fol = vis.filter((v) => v.type === "Follow-up").length;
+    const fol = vis.filter((v) => v.type !== "New").length;
     const pr = store.data.profile;
     const rows = vis
       .map((v) => {
@@ -262,15 +289,15 @@
       </div>
       <div class="scroll">
         <div class="stats">
-          <div class="stat cyan"><div class="row"><div><div class="lbl">Today's Patients</div><div class="num">${vis.length}</div><div class="delta">Live queue</div></div><div class="ico">${svg("people", 16)}</div></div></div>
+          <div class="stat cyan"><div class="row"><div><div class="lbl">${live ? "Today's Patients" : "Patients on file"}</div><div class="num">${live ? today.length : store.data.patients.length}</div><div class="delta">${live ? "Live queue" : "Restored backup"}</div></div><div class="ico">${svg("people", 16)}</div></div></div>
           <div class="stat gold"><div class="row"><div><div class="lbl">Awaiting Consultation</div><div class="num">${waiting}</div></div><div class="ico">${svg("desk", 16)}</div></div></div>
-          <div class="stat purple"><div class="row"><div><div class="lbl">In Consultation</div><div class="num">${progress}</div></div><div class="ico">${svg("steth", 16)}</div></div></div>
-          <div class="stat green"><div class="row"><div><div class="lbl">Completed Today</div><div class="num">${done}</div></div><div class="ico">${svg("badge", 16)}</div></div></div>
-          <div class="stat orange"><div class="row"><div><div class="lbl">Pending Investigations</div><div class="num">${pendingInv}</div></div><div class="ico">${svg("flask", 16)}</div></div></div>
+          <div class="stat purple"><div class="row"><div><div class="lbl">Prescriptions</div><div class="num">${store.data.consultations.length}</div></div><div class="ico">${svg("rx", 16)}</div></div></div>
+          <div class="stat green"><div class="row"><div><div class="lbl">${live ? "Completed Today" : "Completed visits"}</div><div class="num">${done}</div></div><div class="ico">${svg("badge", 16)}</div></div></div>
+          <div class="stat orange"><div class="row"><div><div class="lbl">Unpaid bills</div><div class="num">${pendingBills || pendingInv}</div></div><div class="ico">${svg("bill", 16)}</div></div></div>
         </div>
         <div class="mid">
           <div class="card">
-            <div class="card-h"><h3>Today's Queue</h3><span class="sub">${vis.length} tokens</span></div>
+            <div class="card-h"><h3>${live ? "Today's Queue" : "Recent visits"}</h3><span class="sub">${vis.length} records</span></div>
             <div style="overflow:auto">
               <table>
                 <thead><tr><th>Token</th><th>Patient</th><th>Cardiologist</th><th>Type</th><th>Status</th><th></th></tr></thead>
@@ -397,7 +424,9 @@
   }
 
   function viewConsultation() {
-    const vis = todayVisits();
+    const vis = todayVisits().length
+      ? todayVisits()
+      : [...store.data.visits].sort((a, b) => String(b.date).localeCompare(String(a.date)));
     const focus = store.focusVisit || (vis[0] && vis[0].id) || "";
     const v = store.data.visits.find((x) => x.id === focus) || vis[0];
     const existing = v ? store.data.consultations.find((c) => c.visitId === v.id) : null;
@@ -446,7 +475,7 @@
         <td><div class="who"><span class="av">${esc(initials(p.name))}</span>${esc(p.name)}</div></td>
         <td>${p.age} / ${esc(p.sex)}</td>
         <td>${esc(p.phone)}</td>
-        <td>${esc(p.address)}</td>
+        <td>${esc(p.diag || p.address)}</td>
         <td><button class="btn btn-ghost" data-act="edit-patient" data-id="${p.id}">Open</button></td>
       </tr>`
       )
@@ -455,8 +484,63 @@
       <div class="scroll">
         <div class="toolbar"><input class="search" data-search placeholder="Search name, MRN, phone" value="${esc(store.q || "")}"></div>
         <div class="card"><table>
-          <thead><tr><th>MRN</th><th>Name</th><th>Age/Sex</th><th>Phone</th><th>Address</th><th></th></tr></thead>
+          <thead><tr><th>MRN</th><th>Name</th><th>Age/Sex</th><th>Phone</th><th>Diagnosis</th><th></th></tr></thead>
           <tbody>${rows || `<tr><td colspan="6" class="empty">No patients</td></tr>`}</tbody>
+        </table></div>
+      </div>`;
+  }
+
+  function viewPrescriptions() {
+    const rows = [...store.data.consultations]
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+      .map((c) => {
+        const p = patient(c.patientId);
+        const meds = (c.rx || []).map((m) => `${m.drug} ${m.dose} ${m.freq}`).join(", ");
+        return `<tr>
+          <td class="token">${esc(c.id)}</td>
+          <td><div class="who"><span class="av">${esc(initials(p.name))}</span>${esc(p.name)}</div></td>
+          <td>${esc(c.date)}</td>
+          <td>${esc(c.diagnosis)}</td>
+          <td>${esc(meds || "—")}</td>
+          <td><button class="icon-btn" data-act="rx" data-id="${c.visitId}" title="Open">${svg("rx", 15)}</button></td>
+        </tr>`;
+      })
+      .join("");
+    return `<div class="page-head"><h2>Prescriptions</h2></div>
+      <div class="scroll"><div class="card"><table>
+        <thead><tr><th>Rx</th><th>Patient</th><th>Date</th><th>Diagnosis</th><th>Medicines</th><th></th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="6" class="empty">No prescriptions on file</td></tr>`}</tbody>
+      </table></div></div>`;
+  }
+
+  function viewBilling() {
+    const rows = [...bills()]
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+      .map((b) => {
+        const p = patient(b.patientId);
+        const items = (b.items || []).map((i) => i.desc).join(", ");
+        return `<tr>
+          <td class="token">${esc(b.id)}</td>
+          <td>${esc(p.name)}</td>
+          <td>${esc(b.date)}</td>
+          <td>${esc(items)}</td>
+          <td>${esc(money(b.total))}</td>
+          <td><span class="badge ${badgeStatus(b.status)}">${esc(b.status)}</span></td>
+        </tr>`;
+      })
+      .join("");
+    const paid = bills().filter((b) => b.status === "Paid").reduce((s, b) => s + (b.total || 0), 0);
+    const due = bills().filter((b) => b.status !== "Paid").reduce((s, b) => s + (b.total || 0), 0);
+    return `<div class="page-head"><h2>Billing</h2></div>
+      <div class="scroll">
+        <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat green"><div class="lbl">Collected</div><div class="num">${esc(money(paid))}</div></div>
+          <div class="stat orange"><div class="lbl">Outstanding</div><div class="num">${esc(money(due))}</div></div>
+          <div class="stat gold"><div class="lbl">Invoices</div><div class="num">${bills().length}</div></div>
+        </div>
+        <div class="card"><table>
+          <thead><tr><th>Invoice</th><th>Patient</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="6" class="empty">No bills on file</td></tr>`}</tbody>
         </table></div>
       </div>`;
   }
@@ -505,7 +589,7 @@
           <div class="stat cyan"><div class="lbl">Total patients</div><div class="num">${store.data.patients.length}</div></div>
           <div class="stat gold"><div class="lbl">Total visits</div><div class="num">${vis.length}</div></div>
           <div class="stat green"><div class="lbl">Consults on file</div><div class="num">${store.data.consultations.length}</div></div>
-          <div class="stat orange"><div class="lbl">Investigations</div><div class="num">${store.data.investigations.length}</div></div>
+          <div class="stat orange"><div class="lbl">Outstanding</div><div class="num">${esc(money(bills().filter((b) => b.status !== "Paid").reduce((s, x) => s + (x.total || 0), 0)))}</div></div>
           <div class="stat purple"><div class="lbl">Staff</div><div class="num">${store.data.staff.length}</div></div>
         </div>
         <div class="card pad">
@@ -547,9 +631,10 @@
           <div class="f span"><label>Tagline</label><input name="tagline" value="${esc(c.tagline)}"></div>
           <div class="f"><label>Weekday hours</label><input name="hours" value="${esc(c.hours)}"></div>
           <div class="f"><label>Sunday clinic</label><input name="sundayClinic" value="${esc(c.sundayClinic)}"></div>
-          <div class="f span" style="display:flex;gap:8px">
+          <div class="f span" style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-gold" type="submit">Save settings</button>
-            <button class="btn btn-ghost" type="button" data-act="reset-demo">Restore demo data</button>
+            <button class="btn btn-ghost" type="button" data-act="reset-demo">Reload backup</button>
+            <label class="btn btn-ghost" style="display:inline-flex;align-items:center;cursor:pointer">Restore backup file<input type="file" accept=".json" data-restore-backup style="display:none"></label>
           </div>
         </form>
       </div></div>`;
@@ -588,6 +673,8 @@
     vitals: viewVitals,
     consultation: viewConsultation,
     patients: viewPatients,
+    prescriptions: viewPrescriptions,
+    billing: viewBilling,
     investigations: viewInvestigations,
     analytics: viewAnalytics,
     staff: viewStaff,
@@ -637,6 +724,9 @@
       <div class="f"><label>Sex</label><select name="sex"><option ${p.sex === "M" ? "selected" : ""}>M</option><option ${p.sex === "F" ? "selected" : ""}>F</option></select></div>
       <div class="f"><label>Phone</label><input name="phone" value="${esc(p.phone || "")}"></div>
       <div class="f span"><label>Address</label><input name="address" value="${esc(p.address || "")}"></div>
+      <div class="f"><label>CNIC</label><input name="cnic" value="${esc(p.cnic || "")}"></div>
+      <div class="f"><label>Blood group</label><input name="blood" value="${esc(p.blood || "")}"></div>
+      <div class="f span"><label>Diagnosis</label><input name="diag" value="${esc(p.diag || "")}"></div>
     </div>`;
   }
 
@@ -650,7 +740,9 @@
       sex: f.sex,
       phone: f.phone,
       address: f.address,
-      cnic: "",
+      cnic: f.cnic || "",
+      blood: f.blood || "",
+      diag: f.diag || "",
       mrn: "AHC-" + String(1000 + n),
     };
     store.data.patients.push(rec);
@@ -780,10 +872,35 @@
         break;
       case "reset-demo":
         store.data = await (await fetch("/api/clinic/reset", { method: "POST" })).json();
-        toast("Demo data restored");
+        toast("Backup restored");
         render();
         break;
     }
+  });
+
+  document.addEventListener("change", async (e) => {
+    const input = e.target.closest("[data-restore-backup]");
+    if (!input || !input.files || !input.files[0]) return;
+    const text = await input.files[0].text();
+    let payload;
+    try {
+      payload = JSON.parse(text);
+    } catch (err) {
+      toast("Invalid JSON file");
+      return;
+    }
+    const res = await fetch("/api/clinic/restore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      toast("Could not restore backup");
+      return;
+    }
+    store.data = await res.json();
+    toast("Backup restored");
+    render();
   });
 
   document.addEventListener("submit", async (e) => {

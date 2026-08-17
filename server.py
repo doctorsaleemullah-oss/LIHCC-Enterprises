@@ -11,10 +11,13 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlparse
 
+from import_backup import clinic_defaults, import_backup, is_backup
+
 ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / "static"
 DATA_DIR = ROOT / "data"
 DATA_FILE = DATA_DIR / "clinic.json"
+BACKUP_FILE = DATA_DIR / "backup.json"
 HOST = os.environ.get("AHC_HOST", "0.0.0.0")
 PORT = int(os.environ.get("AHC_PORT", "8000"))
 
@@ -25,6 +28,8 @@ SPA_ROUTES = {
     "/vitals",
     "/consultation",
     "/patients",
+    "/prescriptions",
+    "/billing",
     "/investigations",
     "/analytics",
     "/staff",
@@ -37,207 +42,52 @@ def today_iso() -> str:
     return date.today().isoformat()
 
 
+def empty_clinic() -> dict:
+    data = clinic_defaults()
+    data.update(
+        {
+            "patients": [],
+            "visits": [],
+            "appointments": [],
+            "vitals": [],
+            "consultations": [],
+            "investigations": [],
+            "billing": [],
+            "source": "empty",
+            "next": {"patient": 1, "visit": 1, "staff": 3, "appt": 1, "vital": 1, "consult": 1, "inv": 1, "bill": 1},
+        }
+    )
+    return data
+
+
+def load_backup_file() -> dict | None:
+    if not BACKUP_FILE.exists():
+        return None
+    try:
+        payload = json.loads(BACKUP_FILE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    if not is_backup(payload):
+        return None
+    return import_backup(payload)
+
+
 def seed() -> dict:
-    today = today_iso()
-    return {
-        "clinic": {
-            "name": "Advanced Heart Center",
-            "location": "Saidu Sharif, Swat",
-            "hospital": "Swat International Hospital",
-            "phone": "+92 345 1234567",
-            "tagline": "Excellence in Cardiac Care, Compassion in Every Heart",
-            "hours": "Mon–Sat 10:00 AM – 7:00 PM",
-            "sundayClinic": "Khwaza Khela Medical Center, 8:00 AM – 1:00 PM",
-        },
-        "profile": {
-            "name": "Dr. Saleem Ullah",
-            "role": "Interventional Cardiologist Consultant",
-            "qualifications": "MBBS (KMC Peshawar) · FCPS Cardiology (HMC) · Fellowship Interventional Cardiology (NICVD Karachi)",
-            "experienceYears": 12,
-            "happyPatients": 2500,
-            "successRate": 98,
-            "affiliations": [
-                "Chairman, Cardiology — Luqman International Hospital, Saidu Sharif",
-                "Consultant — Saidu Teaching Hospital",
-                "Consultant — Advanced Heart Center, Swat International Hospital",
-            ],
-        },
-        "staff": [
-            {
-                "id": "s1",
-                "name": "Dr. Saleem Ullah",
-                "role": "Interventional Cardiologist",
-                "access": "owner",
-                "phone": "+92 345 1234567",
-                "active": True,
-            },
-            {
-                "id": "s2",
-                "name": "Dr. Muhammad Khan",
-                "role": "Cardiologist",
-                "access": "doctor",
-                "phone": "",
-                "active": True,
-            },
-        ],
-        "patients": [
-            {
-                "id": "p1",
-                "name": "Saleem Ullah",
-                "age": 54,
-                "sex": "M",
-                "phone": "0345-1112233",
-                "cnic": "",
-                "address": "Saidu Sharif",
-                "mrn": "AHC-1001",
-            },
-            {
-                "id": "p2",
-                "name": "Tauqeer Nasir",
-                "age": 47,
-                "sex": "M",
-                "phone": "0346-4455667",
-                "cnic": "",
-                "address": "Mingora",
-                "mrn": "AHC-1002",
-            },
-            {
-                "id": "p3",
-                "name": "Fazal Ur Rehman",
-                "age": 62,
-                "sex": "M",
-                "phone": "0344-7788990",
-                "cnic": "",
-                "address": "Kanju",
-                "mrn": "AHC-1003",
-            },
-            {
-                "id": "p4",
-                "name": "Zainab Shah",
-                "age": 39,
-                "sex": "F",
-                "phone": "0345-2211009",
-                "cnic": "",
-                "address": "Saidu Sharif",
-                "mrn": "AHC-1004",
-            },
-            {
-                "id": "p5",
-                "name": "Irfan Ullah",
-                "age": 58,
-                "sex": "M",
-                "phone": "0347-3300211",
-                "cnic": "",
-                "address": "Charbagh",
-                "mrn": "AHC-1005",
-            },
-        ],
-        "visits": [
-            {
-                "id": "v1",
-                "token": 1,
-                "date": today,
-                "patientId": "p1",
-                "doctorId": "s2",
-                "type": "New",
-                "status": "Completed",
-                "complaint": "Chest heaviness on exertion",
-            },
-            {
-                "id": "v2",
-                "token": 2,
-                "date": today,
-                "patientId": "p2",
-                "doctorId": "s1",
-                "type": "Follow-up",
-                "status": "Completed",
-                "complaint": "Post-PCI review",
-            },
-            {
-                "id": "v3",
-                "token": 3,
-                "date": today,
-                "patientId": "p5",
-                "doctorId": "s1",
-                "type": "New",
-                "status": "Completed",
-                "complaint": "Palpitations",
-            },
-        ],
-        "appointments": [
-            {
-                "id": "a1",
-                "date": today,
-                "time": "10:30",
-                "patientId": "p3",
-                "doctorId": "s1",
-                "reason": "Follow-up echo",
-            },
-            {
-                "id": "a2",
-                "date": today,
-                "time": "11:15",
-                "patientId": "p4",
-                "doctorId": "s1",
-                "reason": "New patient consult",
-            },
-            {
-                "id": "a3",
-                "date": today,
-                "time": "12:00",
-                "patientId": "p5",
-                "doctorId": "s2",
-                "reason": "BP & medication review",
-            },
-        ],
-        "vitals": [
-            {
-                "id": "vt1",
-                "visitId": "v1",
-                "patientId": "p1",
-                "date": today,
-                "bpSys": 148,
-                "bpDia": 92,
-                "hr": 86,
-                "temp": 36.8,
-                "spo2": 97,
-                "weight": 81,
-                "height": 172,
-            }
-        ],
-        "consultations": [
-            {
-                "id": "c1",
-                "visitId": "v1",
-                "patientId": "p1",
-                "doctorId": "s2",
-                "date": today,
-                "diagnosis": "Stable angina · HTN",
-                "notes": "Lifestyle advice given. Start anti-anginal therapy. Echo + lipid profile planned.",
-                "rx": [
-                    {"drug": "Aspirin 75 mg", "dose": "1 tab", "freq": "OD", "days": "30"},
-                    {"drug": "Atorvastatin 40 mg", "dose": "1 tab", "freq": "HS", "days": "30"},
-                    {"drug": "Bisoprolol 2.5 mg", "dose": "1 tab", "freq": "OD", "days": "30"},
-                ],
-            }
-        ],
-        "investigations": [],
-        "next": {"patient": 6, "visit": 4, "staff": 3, "appt": 4, "vital": 2, "consult": 2, "inv": 1},
-    }
+    return load_backup_file() or empty_clinic()
 
 
 def load_clinic() -> dict:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    if not DATA_FILE.exists():
-        data = seed()
-        save_clinic(data)
-        return data
-    try:
-        return json.loads(DATA_FILE.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        data = seed()
-        save_clinic(data)
-        return data
+    if DATA_FILE.exists():
+        try:
+            current = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+            if current.get("patients"):
+                return current
+        except (json.JSONDecodeError, OSError):
+            pass
+    data = seed()
+    save_clinic(data)
+    return data
 
 
 def save_clinic(data: dict) -> None:
@@ -326,6 +176,8 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(payload, dict):
             self._json(400, {"error": "Expected an object"})
             return
+        if is_backup(payload):
+            payload = import_backup(payload)
         save_clinic(payload)
         self._json(200, {"ok": True})
 
@@ -334,6 +186,20 @@ class Handler(BaseHTTPRequestHandler):
         path = parsed.path.rstrip("/") or "/"
         if path == "/api/clinic/reset":
             data = seed()
+            save_clinic(data)
+            self._json(200, data)
+            return
+        if path == "/api/clinic/restore":
+            try:
+                payload = self._read_json()
+            except json.JSONDecodeError:
+                self._json(400, {"error": "Invalid JSON"})
+                return
+            if not isinstance(payload, dict) or not is_backup(payload):
+                self._json(400, {"error": "Not an Advanced Heart Center backup"})
+                return
+            BACKUP_FILE.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+            data = import_backup(payload)
             save_clinic(data)
             self._json(200, data)
             return
