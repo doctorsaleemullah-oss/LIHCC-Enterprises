@@ -1,0 +1,254 @@
+{
+  "patients": [
+    {
+      "id": "PT-001",
+      "name": "Ahmed Raza",
+      "cnic": "37405-1234567-1",
+      "age": 58,
+      "gender": "Male",
+      "blood": "B+",
+      "phone": "0300-1234567",
+      "city": "Saidu Sharif, Swat",
+      "addr": "Street 5, Satellite Town",
+      "diag": "Hypertension (HTN)",
+      "ref": "Self",
+      "notes": "Allergic to Aspirin",
+      "status": "Active",
+      "created": "2026-01-15"
+    },
+    {
+      "id": "PT-002",
+      "name": "Saima Malik",
+      "cnic": "37405-9876543-2",
+      "age": 45,
+      "gender": "Female",
+      "blood": "O+",
+      "phone": "0321-9876543",
+      "city": "Islamabad",
+      "addr": "F-10/3, Islamabad",
+      "diag": "Atrial Fibrillation (AF)",
+      "ref": "Dr. Khan",
+      "notes": "",
+      "status": "Active",
+      "created": "2026-02-10"
+    },
+    {
+      "id": "PT-003",
+      "name": "Tariq Hussain",
+      "cnic": "",
+      "age": 62,
+      "gender": "Male",
+      "blood": "A+",
+      "phone": "0333-5551234",
+      "city": "Saidu Sharif, Swat",
+      "addr": "Raja Bazaar",
+      "diag": "Coronary Artery Disease (CAD)",
+      "ref": "",
+      "notes": "DM Type 2",
+      "status": "Active",
+      "created": "2026-03-05"
+    },
+    {
+      "id": "PT-004",
+      "name": "Nadia Akhtar",
+      "cnic": "",
+      "age": 38,
+      "gender": "Female",
+      "blood": "",
+      "phone": "0312-7778888",
+      "city": "Taxila",
+      "addr": "",
+      "diag": "Heart Failure (HF)",
+      "ref": "",
+      "notes": "",
+      "status": "Active",
+      "created": "2026-04-01"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "AP-001",
+      "patId": "PT-001",
+      "date": "2026-05-16",
+      "time": "09:00 AM",
+      "type": "Follow-up",
+      "doctor": "Dr. Saleem Ullah",
+      "status": "Confirmed",
+      "notes": "BP review"
+    },
+    {
+      "id": "AP-002",
+      "patId": "PT-002",
+      "date": "2026-05-16",
+      "time": "10:00 AM",
+      "type": "ECG",
+      "doctor": "Dr. Saleem Ullah",
+      "status": "Confirmed",
+      "notes": "Holter results review"
+    },
+    {
+      "id": "AP-003",
+      "patId": "PT-003",
+      "date": "2026-05-16",
+      "time": "11:00 AM",
+      "type": "New Consultation",
+      "doctor": "Dr. Saleem Ullah",
+      "status": "Pending",
+      "notes": "Chest pain evaluation"
+    },
+    {
+      "id": "AP-004",
+      "patId": "PT-004",
+      "date": "2026-05-17",
+      "time": "09:30 AM",
+      "type": "Echo",
+      "doctor": "Dr. Saleem Ullah",
+      "status": "Pending",
+      "notes": ""
+    }
+  ],
+  "prescriptions": [
+    {
+      "id": "RX-001",
+      "patId": "PT-001",
+      "date": "2026-05-10",
+      "diag": "Hypertension (HTN)",
+      "bp": "158/96",
+      "hr": "88",
+      "wt": "80",
+      "spo2": "97",
+      "ecg": "NSR, LVH pattern",
+      "meds": [
+        {
+          "name": "Tab. Bisoprolol",
+          "dose": "5mg",
+          "freq": "OD",
+          "dur": "30 days"
+        },
+        {
+          "name": "Tab. Enalapril",
+          "dose": "10mg",
+          "freq": "BD",
+          "dur": "30 days"
+        },
+        {
+          "name": "Tab. Furosemide",
+          "dose": "40mg",
+          "freq": "OD",
+          "dur": "14 days"
+        }
+      ],
+      "advice": "Low salt diet. Daily 30 min walk. Return in 4 weeks."
+    },
+    {
+      "id": "RX-002",
+      "patId": "PT-002",
+      "date": "2026-05-12",
+      "diag": "Atrial Fibrillation (AF)",
+      "bp": "126/82",
+      "hr": "72",
+      "wt": "65",
+      "spo2": "98",
+      "ecg": "SR with occasional PACs",
+      "meds": [
+        {
+          "name": "Tab. Metoprolol",
+          "dose": "25mg",
+          "freq": "BD",
+          "dur": "30 days"
+        },
+        {
+          "name": "Tab. Warfarin",
+          "dose": "3mg",
+          "freq": "OD",
+          "dur": "Ongoing"
+        }
+      ],
+      "advice": "Monitor INR weekly. Avoid NSAIDs. No driving until stable."
+    },
+    {
+      "id": "RX-003",
+      "patId": "PT-003",
+      "date": "2026-08-10",
+      "diag": "CAD/HTN/DM",
+      "bp": "128/67",
+      "hr": "62",
+      "wt": "78",
+      "spo2": "97",
+      "ecg": "NSR/No acute ST-T changes ",
+      "meds": [
+        {
+          "name": "Tab. Concor",
+          "dose": "5mg",
+          "freq": "OD",
+          "dur": "جاری"
+        }
+      ],
+      "advice": ""
+    }
+  ],
+  "billing": [
+    {
+      "id": "INV-001",
+      "patId": "PT-001",
+      "date": "2026-05-10",
+      "items": [
+        {
+          "desc": "Consultation (Cardiology OPD)",
+          "amt": 1500
+        },
+        {
+          "desc": "ECG Recording & Report",
+          "amt": 500
+        },
+        {
+          "desc": "Prescription Fee",
+          "amt": 200
+        }
+      ],
+      "status": "Paid"
+    },
+    {
+      "id": "INV-002",
+      "patId": "PT-002",
+      "date": "2026-05-12",
+      "items": [
+        {
+          "desc": "Consultation (Cardiology OPD)",
+          "amt": 1500
+        },
+        {
+          "desc": "Holter Monitor (24hr)",
+          "amt": 4500
+        },
+        {
+          "desc": "Echocardiography 2D",
+          "amt": 3500
+        }
+      ],
+      "status": "Pending"
+    },
+    {
+      "id": "INV-003",
+      "patId": "PT-003",
+      "date": "2026-05-14",
+      "items": [
+        {
+          "desc": "New Patient Consultation",
+          "amt": 2000
+        },
+        {
+          "desc": "Treadmill Test (TMT)",
+          "amt": 3000
+        }
+      ],
+      "status": "Paid"
+    }
+  ],
+  "counters": {
+    "pat": 4,
+    "appt": 4,
+    "rx": 3,
+    "bill": 3
+  }
+}

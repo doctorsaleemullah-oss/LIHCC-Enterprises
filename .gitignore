@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+data/clinic.json
+data/clinic.tmp
+.DS_Store
