@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block heading %}Reception{% endblock %}
+{% block sub %}Register patients, assign a cardiologist, and issue tokens{% endblock %}
+{% block body %}
+<div class="grid-2">
+  <section class="card">
+    <h2>Register / search</h2>
+    <label>Search existing patient</label>
+    <input id="patient-search" placeholder="Name, ID, phone or CNIC" autocomplete="off">
+    <div id="search-results" class="search-results"></div>
+    <form id="register-form" class="stack">
+      <input type="hidden" name="patient_id" id="patient_id">
+      <div class="row">
+        <div class="grow"><label>Name *</label><input name="name" id="name" required></div>
+        <div><label>Name (Urdu)</label><input name="name_ur" id="name_ur" class="urdu"></div>
+      </div>
+      <div class="row">
+        <div><label>Age</label><input name="age" id="age" type="number" min="0" max="120"></div>
+        <div><label>Gender</label>
+          <select name="gender" id="gender">
+            {% for g in genders %}<option>{{ g }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="grow"><label>Phone</label><input name="phone" id="phone"></div>
+        <div class="grow"><label>CNIC</label><input name="cnic" id="cnic"></div>
+      </div>
+      <label>Address</label>
+      <input name="address" id="address">
+      <div class="row">
+        <div class="grow"><label>Cardiologist *</label>
+          <select name="cardiologist_id" id="cardiologist_id" required>
+            <option value="">Select</option>
+            {% for d in doctors %}<option value="{{ d.id }}">{{ d.full_name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div><label>Visit type</label>
+          <select name="visit_type" id="visit_type">
+            {% for val,label in visit_types %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Fee (Rs)</label><input name="consultation_fee" id="consultation_fee" type="number" value="2000"></div>
+        <div><label>Date</label><input name="visit_date" id="visit_date" type="date" value="{{ today }}"></div>
+      </div>
+      <button class="btn primary" type="submit">Generate token</button>
+    </form>
+    <div id="token-ok" class="alert success" hidden></div>
+  </section>
+  <section class="card">
+    <h2>Today’s tokens</h2>
+    {% if tokens %}
+    <table>
+      <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for v in tokens %}
+        <tr>
+          <td class="token">{{ v.token_number }}</td>
+          <td>{{ v.patient.name }}<div class="muted sm">{{ v.patient.patient_code }}</div></td>
+          <td>{{ v.cardiologist.full_name if v.cardiologist else '—' }}</td>
+          <td><span class="pill {{ v.status|lower }}">{{ STATUS_LABELS.get(v.status, v.status) }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">No tokens yet today.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+AHC.bindPatientSearch();
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const payload = Object.fromEntries(fd.entries());
+  const res = await AHC.postJSON('/api/patients', payload);
+  if (!res.ok) { AHC.toast(res.detail || 'Could not register', 'error'); return; }
+  const box = document.getElementById('token-ok');
+  box.hidden = false;
+  box.textContent = `Token #${res.token_number} · ${res.patient_code}`;
+  AHC.toast('Token issued');
+  setTimeout(() => location.reload(), 800);
+});
+</script>
+{% endblock %}

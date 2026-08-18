@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block heading %}Vitals{% endblock %}
+{% block sub %}Record BP, pulse, SpO₂, temperature, and weight{% endblock %}
+{% block body %}
+<div class="grid-2">
+  <section class="card">
+    <h2>Waiting for vitals</h2>
+    {% if waiting %}
+      {% for v in waiting %}
+      <button class="row-link" type="button" onclick="fillVitals({{ v.id }}, '{{ v.patient.name|e }}', {{ v.token_number }})">
+        <div>
+          <strong>#{{ v.token_number }} · {{ v.patient.name }}</strong>
+          <div class="muted sm">{{ v.patient.patient_code }} · {{ v.patient.age or '—' }}/{{ v.patient.gender }}</div>
+        </div>
+        <span class="pill waiting_vitals">Waiting</span>
+      </button>
+      {% endfor %}
+    {% else %}
+    <p class="empty">Queue is clear.</p>
+    {% endif %}
+  </section>
+  <section class="card">
+    <h2 id="vitals-title">Enter vitals</h2>
+    <form id="vitals-form" class="stack">
+      <input type="hidden" id="visit_id">
+      <div class="row">
+        <div><label>BP systolic</label><input id="bp_systolic" type="number"></div>
+        <div><label>BP diastolic</label><input id="bp_diastolic" type="number"></div>
+      </div>
+      <div class="row">
+        <div><label>Pulse</label><input id="pulse" type="number"></div>
+        <div><label>SpO₂ %</label><input id="spo2" type="number"></div>
+      </div>
+      <div class="row">
+        <div><label>Temp °F</label><input id="temperature" type="number" step="0.1"></div>
+        <div><label>Weight kg</label><input id="weight" type="number" step="0.1"></div>
+        <div><label>Height cm</label><input id="height" type="number" step="0.1"></div>
+      </div>
+      <button class="btn primary" type="submit">Save & send to doctor</button>
+    </form>
+  </section>
+</div>
+<section class="card">
+  <h2>Today’s vitals</h2>
+  <table>
+    <thead><tr><th>#</th><th>Patient</th><th>BP</th><th>Pulse</th><th>SpO₂</th><th>Wt</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for v in visits %}
+      <tr>
+        <td class="token">{{ v.token_number }}</td>
+        <td>{{ v.patient.name }}</td>
+        <td>{% if v.vitals and v.vitals.bp_systolic %}{{ v.vitals.bp_systolic }}/{{ v.vitals.bp_diastolic }}{% else %}—{% endif %}</td>
+        <td>{{ v.vitals.pulse if v.vitals and v.vitals.pulse else '—' }}</td>
+        <td>{{ v.vitals.spo2 if v.vitals and v.vitals.spo2 else '—' }}</td>
+        <td>{{ v.vitals.weight if v.vitals and v.vitals.weight else '—' }}</td>
+        <td><span class="pill {{ v.status|lower }}">{{ STATUS_LABELS.get(v.status, v.status) }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+function fillVitals(id, name, token) {
+  document.getElementById('visit_id').value = id;
+  document.getElementById('vitals-title').textContent = `#${token} · ${name}`;
+}
+document.getElementById('vitals-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('visit_id').value;
+  if (!id) { AHC.toast('Select a patient first', 'error'); return; }
+  const payload = {
+    bp_systolic: document.getElementById('bp_systolic').value,
+    bp_diastolic: document.getElementById('bp_diastolic').value,
+    pulse: document.getElementById('pulse').value,
+    spo2: document.getElementById('spo2').value,
+    temperature: document.getElementById('temperature').value,
+    weight: document.getElementById('weight').value,
+    height: document.getElementById('height').value,
+  };
+  const res = await AHC.postJSON('/api/vitals/' + id, payload);
+  if (!res.ok) { AHC.toast(res.detail || 'Save failed', 'error'); return; }
+  AHC.toast('Vitals saved');
+  location.reload();
+});
+{% if waiting %}fillVitals({{ waiting[0].id }}, {{ waiting[0].patient.name|tojson }}, {{ waiting[0].token_number }});{% endif %}
+</script>
+{% endblock %}

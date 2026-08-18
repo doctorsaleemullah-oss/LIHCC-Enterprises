@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block heading %}#{{ visit.token_number }} · {{ visit.patient.name }}{% endblock %}
+{% block sub %}{{ visit.patient.patient_code }} · {{ visit.patient.age or '—' }}/{{ visit.patient.gender }} · {{ visit.visit_type.replace('_',' ') }} · {{ visit.visit_date }}{% endblock %}
+{% block actions %}
+<a class="btn ghost" href="/consultation">Queue</a>
+<a class="btn ghost" href="/print/rx/{{ visit.id }}" target="_blank">Print Rx</a>
+{% endblock %}
+{% block body %}
+{% if prev %}
+<section class="card prev-banner">
+  <strong>Previous visit {{ prev.visit_date }}</strong>
+  <span>{{ prev_dx or 'No diagnosis recorded' }}</span>
+  {% if prev_rx %}
+  <div class="muted sm">Rx: {% for m in prev_rx %}{{ m.drug_name }}{% if not loop.last %}, {% endif %}{% endfor %}</div>
+  {% endif %}
+  <button class="btn sm" type="button" onclick="copyPreviousRx()">Copy previous medicines</button>
+</section>
+{% endif %}
+
+<div class="consult-grid">
+  <section class="card">
+    <h2>Vitals</h2>
+    {% set vt = visit.vitals %}
+    <div class="vitals-strip">
+      <div>BP <strong>{% if vt and vt.bp_systolic %}{{ vt.bp_systolic }}/{{ vt.bp_diastolic }}{% else %}—{% endif %}</strong></div>
+      <div>Pulse <strong>{{ vt.pulse if vt and vt.pulse else '—' }}</strong></div>
+      <div>SpO₂ <strong>{{ vt.spo2 if vt and vt.spo2 else '—' }}</strong></div>
+      <div>Temp <strong>{{ vt.temperature if vt and vt.temperature else '—' }}</strong></div>
+      <div>Wt <strong>{{ vt.weight if vt and vt.weight else '—' }} kg</strong></div>
+      <div>Ht <strong>{{ vt.height if vt and vt.height else '—' }} cm</strong></div>
+    </div>
+  </section>
+</div>
+
+<form id="consult-form">
+<div class="grid-2">
+  <section class="card">
+    <h2>Medical history</h2>
+    <div class="chips">
+      <label class="chip"><input type="checkbox" name="htn" {% if history and history.htn %}checked{% endif %}> HTN</label>
+      <label class="chip"><input type="checkbox" name="dm" {% if history and history.dm %}checked{% endif %}> DM</label>
+      <label class="chip"><input type="checkbox" name="dyslipidemia" {% if history and history.dyslipidemia %}checked{% endif %}> Dyslipidemia</label>
+      <label class="chip"><input type="checkbox" name="previous_cva" {% if history and history.previous_cva %}checked{% endif %}> CVA</label>
+      <label class="chip"><input type="checkbox" name="family_cad" {% if history and history.family_cad %}checked{% endif %}> FH IHD</label>
+      <label class="chip"><input type="checkbox" name="family_dm" {% if history and history.family_dm %}checked{% endif %}> FH DM</label>
+      <label class="chip"><input type="checkbox" name="previous_pci" {% if history and history.previous_pci %}checked{% endif %}> PCI</label>
+      <label class="chip"><input type="checkbox" name="previous_cabg" {% if history and history.previous_cabg %}checked{% endif %}> CABG</label>
+    </div>
+    <div class="row">
+      <div><label>Smoking</label>
+        <select name="smoking">
+          {% for s in smoking_options %}<option {% if history and history.smoking==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="grow"><label>PCI details</label><input name="pci_details" value="{{ history.pci_details if history else '' }}"></div>
+    </div>
+    <label>Allergies</label>
+    <input name="allergies" value="{{ history.allergies if history else '' }}">
+    <label>Surgery / other history</label>
+    <input name="surgery_history" value="{{ history.surgery_history if history else '' }}">
+    <input name="other_history" placeholder="Other history" value="{{ history.other_history if history else '' }}">
+    <input name="cabg_details" placeholder="CABG details" value="{{ history.cabg_details if history else '' }}">
+  </section>
+
+  <section class="card">
+    <h2>Complaints</h2>
+    <label class="chip"><input type="checkbox" id="chest_pain" {% if complaints.chest_pain %}checked{% endif %}> Chest pain</label>
+    <div class="row">
+      <div class="grow"><label>Class</label>
+        <select id="chest_pain_class">
+          <option value=""></option>
+          {% for c in chest_pain_classes %}<option {% if complaints.chest_pain_class==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>CCS</label>
+        <select id="chest_pain_ccs">
+          <option value=""></option>
+          {% for c in ccs_classes %}<option {% if complaints.chest_pain_ccs==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <label class="chip"><input type="checkbox" id="dyspnea" {% if complaints.dyspnea %}checked{% endif %}> Dyspnea</label>
+    <label>NYHA</label>
+    <select id="dyspnea_nyha">
+      <option value=""></option>
+      {% for c in nyha_classes %}<option {% if complaints.dyspnea_nyha==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+    <div class="chips">
+      <label class="chip"><input type="checkbox" id="orthopnea" {% if complaints.orthopnea %}checked{% endif %}> Orthopnea</label>
+      <label class="chip"><input type="checkbox" id="pnd" {% if complaints.pnd %}checked{% endif %}> PND</label>
+    </div>
+    <label>Other symptoms</label>
+    <div class="chips" id="other-symptoms">
+      {% for s in other_symptoms %}
+      <label class="chip"><input type="checkbox" value="{{ s }}" {% if s in complaints.other_symptoms %}checked{% endif %}> {{ s }}</label>
+      {% endfor %}
+    </div>
+    <input id="other_text" placeholder="Other" value="{{ complaints.other_text or '' }}">
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Examination</h2>
+    <div class="row">
+      <div><label>Pulse</label><input id="ex_pulse" value="{{ examination.pulse or '' }}" placeholder="{{ visit.vitals.pulse if visit.vitals and visit.vitals.pulse else '' }} BPM"></div>
+      <div><label>BP</label><input id="ex_bp" value="{{ examination.bp or '' }}" placeholder="{% if visit.vitals and visit.vitals.bp_systolic %}{{ visit.vitals.bp_systolic }}/{{ visit.vitals.bp_diastolic }}{% endif %}"></div>
+      <div><label>SpO₂</label><input id="ex_spo2" value="{{ examination.spo2 or '' }}"></div>
+    </div>
+    <label>CVS</label>
+    <div class="chips" data-exam="cvs">
+      {% for f in cvs_findings %}<label class="chip"><input type="checkbox" value="{{ f }}" {% if f in examination.cvs %}checked{% endif %}> {{ f }}</label>{% endfor %}
+    </div>
+    <input id="cvs_notes" placeholder="CVS notes" value="{{ examination.cvs_notes or '' }}">
+    <label>Respiratory</label>
+    <div class="chips" data-exam="respiratory">
+      {% for f in resp_findings %}<label class="chip"><input type="checkbox" value="{{ f }}" {% if f in examination.respiratory %}checked{% endif %}> {{ f }}</label>{% endfor %}
+    </div>
+    <input id="resp_notes" placeholder="Chest notes" value="{{ examination.resp_notes or '' }}">
+    <label>CNS</label>
+    <div class="chips" data-exam="cns">
+      {% for f in cns_findings %}<label class="chip"><input type="checkbox" value="{{ f }}" {% if f in examination.cns %}checked{% endif %}> {{ f }}</label>{% endfor %}
+    </div>
+    <label>Abdomen</label>
+    <div class="chips" data-exam="git">
+      {% for f in git_findings %}<label class="chip"><input type="checkbox" value="{{ f }}" {% if f in examination.git %}checked{% endif %}> {{ f }}</label>{% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Diagnosis</h2>
+    <div class="chips" id="dx-chips">
+      {% for d in diagnosis_options %}
+      <label class="chip"><input type="checkbox" value="{{ d }}" {% if d in diagnoses %}checked{% endif %}> {{ d }}</label>
+      {% endfor %}
+    </div>
+    <label>Follow-up assessment</label>
+    <select id="assessment">
+      <option value=""></option>
+      {% for a in assessment_opts %}<option {% if visit.consultation and visit.consultation.assessment==a %}selected{% endif %}>{{ a }}</option>{% endfor %}
+    </select>
+    <label>Notes</label>
+    <textarea id="notes" rows="3">{{ visit.consultation.notes if visit.consultation else '' }}</textarea>
+    <label>Follow-up date</label>
+    <input id="follow_up_date" type="date" value="{{ visit.follow_up_date.isoformat() if visit.follow_up_date else '' }}">
+  </section>
+</div>
+
+<section class="card">
+  <h2>Investigations</h2>
+  {% for cat, items in grouped_inv.items() %}
+  <h3 class="cat">{{ cat|title }}</h3>
+  <div class="chips">
+    {% for inv in items %}
+    <label class="chip"><input type="checkbox" class="inv-box" value="{{ inv.id }}" {% if inv.id in selected_inv %}checked{% endif %}> {{ inv.name }}</label>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Prescription</h2>
+  <div class="row">
+    <div class="grow">
+      <label>Search drug</label>
+      <input id="drug-search" placeholder="Aspirin, bisoprolol…" autocomplete="off">
+      <div id="drug-results" class="search-results"></div>
+    </div>
+    <div>
+      <label>Template</label>
+      <select id="template_id">
+        {% for t in templates_rx %}
+        <option value="{{ t.id }}" {% if visit.prescription and visit.prescription.template_id==t.id %}selected{% elif not visit.prescription and default_tpl and t.id==default_tpl.id %}selected{% endif %}>{{ t.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div id="rx-header" class="rx-header"><span>Brand name</span><span>Generic</span><span>Strength</span><span>Dosage</span><span>Route</span><span>Frequency</span><span>Duration</span><span>Instructions</span><span></span></div>
+  <div id="rx-rows"></div>
+  <button class="btn ghost" type="button" onclick="addRxRow()">+ Add medicine</button>
+  <label>Instructions (English)</label>
+  <textarea id="instructions_en" rows="2">{{ visit.prescription.instructions_en if visit.prescription else '' }}</textarea>
+  <label>ہدایات (Urdu)</label>
+  <textarea id="instructions_ur" class="urdu" rows="2">{{ visit.prescription.instructions_ur if visit.prescription else '' }}</textarea>
+</section>
+
+<div class="sticky-actions">
+  <button class="btn" type="button" onclick="saveConsult(false)">Save draft</button>
+  <button class="btn primary" type="button" onclick="saveConsult(true)">Save & print Rx</button>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+const VISIT_ID = {{ visit.id }};
+const FREQUENCIES = {{ frequencies|tojson }};
+const ROUTES = {{ routes|tojson }};
+const DURATIONS = {{ durations|tojson }};
+const DOSAGES = {{ dosages|tojson }};
+const EXISTING_RX = {{ rx_items|map(attribute='drug_name')|list|tojson }};
+const EXISTING_ITEMS = [
+  {% for m in rx_items %}
+  {drug_id: {{ m.drug_id or 'null' }}, drug_name: {{ m.drug_name|tojson }}, generic_name: {{ (m.generic_name or '')|tojson }}, strength: {{ (m.strength or '')|tojson }}, dosage: {{ (m.dosage or '')|tojson }}, route: {{ (m.route or 'Oral')|tojson }}, frequency: {{ (m.frequency or '')|tojson }}, duration: {{ (m.duration or '')|tojson }}, instructions: {{ (m.instructions or '')|tojson }} },
+  {% endfor %}
+];
+const PREV_ITEMS = [
+  {% for m in prev_rx %}
+  {drug_id: {{ m.drug_id or 'null' }}, drug_name: {{ m.drug_name|tojson }}, generic_name: {{ (m.generic_name or '')|tojson }}, strength: {{ (m.strength or '')|tojson }}, dosage: {{ (m.dosage or '')|tojson }}, route: {{ (m.route or 'Oral')|tojson }}, frequency: {{ (m.frequency or '')|tojson }}, duration: {{ (m.duration or '')|tojson }}, instructions: {{ (m.instructions or '')|tojson }} },
+  {% endfor %}
+];
+
+function opt(list, selected) {
+  return list.map(v => `<option ${v===selected?'selected':''}>${v}</option>`).join('');
+}
+function addRxRow(item={}) {
+  const wrap = document.getElementById('rx-rows');
+  const div = document.createElement('div');
+  div.className = 'rx-row';
+  div.innerHTML = `
+    <input class="drug_id" type="hidden" value="${item.drug_id||''}">
+    <input class="drug_name" placeholder="Brand name" value="${item.drug_name||''}">
+    <input class="generic_name" placeholder="Generic" value="${item.generic_name||''}">
+    <input class="strength" placeholder="Strength" value="${item.strength||''}">
+    <select class="dosage">${opt(DOSAGES, item.dosage||'1 tab')}</select>
+    <select class="route">${opt(ROUTES, item.route||'Oral')}</select>
+    <select class="frequency">${opt(FREQUENCIES, item.frequency||'OD (Once daily)')}</select>
+    <select class="duration">${opt(DURATIONS, item.duration||'Continuous')}</select>
+    <input class="instructions" placeholder="Instructions" value="${item.instructions||''}">
+    <button type="button" class="btn sm ghost" onclick="this.parentElement.remove()">✕</button>`;
+  wrap.appendChild(div);
+}
+function copyPreviousRx() {
+  document.getElementById('rx-rows').innerHTML = '';
+  (PREV_ITEMS.length?PREV_ITEMS:[]).forEach(addRxRow);
+  if (!PREV_ITEMS.length) addRxRow();
+}
+function collectRx() {
+  return [...document.querySelectorAll('.rx-row')].map(row => ({
+    drug_id: row.querySelector('.drug_id').value || null,
+    drug_name: row.querySelector('.drug_name').value,
+    generic_name: row.querySelector('.generic_name').value || row.querySelector('.drug_name').value,
+    strength: row.querySelector('.strength').value,
+    dosage: row.querySelector('.dosage').value,
+    route: row.querySelector('.route').value,
+    frequency: row.querySelector('.frequency').value,
+    duration: row.querySelector('.duration').value,
+    instructions: row.querySelector('.instructions').value,
+  })).filter(x => x.drug_name);
+}
+function checked(sel) { return [...document.querySelectorAll(sel+':checked')].map(i => i.value); }
+function historyPayload() {
+  const f = document.getElementById('consult-form');
+  const on = n => f.querySelector(`[name="${n}"]`)?.checked || false;
+  return {
+    htn: on('htn'), dm: on('dm'), family_cad: on('family_cad'), family_dm: on('family_dm'),
+    smoking: f.smoking.value, dyslipidemia: on('dyslipidemia'), previous_cva: on('previous_cva'),
+    surgery_history: f.surgery_history.value, allergies: f.allergies.value, other_history: f.other_history.value,
+    previous_pci: on('previous_pci'), previous_cabg: on('previous_cabg'),
+    pci_details: f.pci_details.value, cabg_details: f.cabg_details.value,
+  };
+}
+async function saveConsult(finalize) {
+  const consult = await AHC.postJSON('/api/consultation/' + VISIT_ID, {
+    history: historyPayload(),
+    complaints: {
+      chest_pain: document.getElementById('chest_pain').checked,
+      chest_pain_class: document.getElementById('chest_pain_class').value,
+      chest_pain_ccs: document.getElementById('chest_pain_ccs').value,
+      dyspnea: document.getElementById('dyspnea').checked,
+      dyspnea_nyha: document.getElementById('dyspnea_nyha').value,
+      orthopnea: document.getElementById('orthopnea').checked,
+      pnd: document.getElementById('pnd').checked,
+      other_symptoms: checked('#other-symptoms input'),
+      other_text: document.getElementById('other_text').value,
+    },
+    examination: {
+      pulse: document.getElementById('ex_pulse').value,
+      bp: document.getElementById('ex_bp').value,
+      spo2: document.getElementById('ex_spo2').value,
+      cvs: checked('[data-exam=cvs] input'),
+      cvs_notes: document.getElementById('cvs_notes').value,
+      respiratory: checked('[data-exam=respiratory] input'),
+      resp_notes: document.getElementById('resp_notes').value,
+      cns: checked('[data-exam=cns] input'),
+      git: checked('[data-exam=git] input'),
+    },
+    diagnoses: checked('#dx-chips input'),
+    assessment: document.getElementById('assessment').value,
+    notes: document.getElementById('notes').value,
+    follow_up_date: document.getElementById('follow_up_date').value,
+    investigation_ids: checked('.inv-box'),
+  });
+  if (!consult.ok) { AHC.toast(consult.detail || 'Consultation save failed', 'error'); return; }
+  const rx = await AHC.postJSON('/api/prescription/' + VISIT_ID, {
+    items: collectRx(),
+    instructions_en: document.getElementById('instructions_en').value,
+    instructions_ur: document.getElementById('instructions_ur').value,
+    template_id: document.getElementById('template_id').value,
+    is_final: finalize,
+    follow_up_date: document.getElementById('follow_up_date').value,
+  });
+  if (!rx.ok) { AHC.toast(rx.detail || 'Prescription save failed', 'error'); return; }
+  AHC.toast(finalize ? 'Prescription finalized' : 'Draft saved');
+  if (finalize) window.open(rx.print_url, '_blank');
+}
+AHC.bindDrugSearch(addRxRow);
+if (EXISTING_ITEMS.length) EXISTING_ITEMS.forEach(addRxRow); else addRxRow();
+</script>
+{% endblock %}

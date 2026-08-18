@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — {{ clinic_name }}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="login-body">
+  <div class="login-card">
+    <div class="brand-mark lg">♥</div>
+    <h1>{{ clinic_name }}</h1>
+    <p>{{ clinic_subtitle }}</p>
+    {% if error %}
+    <div class="alert error">Invalid username or password.</div>
+    {% endif %}
+    <form method="post" action="/api/login">
+      <label>Username</label>
+      <input name="username" autocomplete="username" required>
+      <label>Password</label>
+      <input name="password" type="password" autocomplete="current-password" required>
+      <button class="btn primary" type="submit">Sign in</button>
+    </form>
+    <p class="hint">Demo: admin / admin123 · reception / reception123 · attendant / attendant123 · dr_saleem / doctor123</p>
+  </div>
+</body>
+</html>

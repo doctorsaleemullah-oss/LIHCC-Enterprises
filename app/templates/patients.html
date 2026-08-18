@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block heading %}Patients{% endblock %}
+{% block sub %}Search the clinic registry{% endblock %}
+{% block body %}
+<section class="card">
+  <form class="row" method="get">
+    <input class="grow" name="q" value="{{ q }}" placeholder="Name, ID, phone, CNIC">
+    <button class="btn primary" type="submit">Search</button>
+  </form>
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Age/Sex</th><th>Phone</th><th>Address</th></tr></thead>
+    <tbody>
+    {% for p in patients %}
+      <tr>
+        <td>{{ p.patient_code }}</td>
+        <td><a href="/patients/{{ p.id }}">{{ p.name }}</a></td>
+        <td>{{ p.age or '—' }}/{{ p.gender }}</td>
+        <td>{{ p.phone or '—' }}</td>
+        <td>{{ p.address or '—' }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="empty">No patients found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
