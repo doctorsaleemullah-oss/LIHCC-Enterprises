@@ -207,6 +207,49 @@ def diagnoses_text(consultation: Consultation | None) -> str:
     return ", ".join(dx) if isinstance(dx, list) else str(dx or "")
 
 
+def freq_short(frequency: str) -> str:
+    freq = (frequency or "").strip()
+    if not freq:
+        return ""
+    if "(" in freq:
+        return freq.split("(", 1)[0].strip()
+    mapping = {
+        "OD (Once daily)": "OD",
+        "BD (Twice daily)": "BD",
+        "TDS (Three times daily)": "TDS",
+        "HS (At night)": "HS",
+    }
+    return mapping.get(freq, freq)
+
+
+def duration_display(duration: str, instructions: str) -> str:
+    parts = [p for p in [(duration or "").strip(), (instructions or "").strip()] if p]
+    return " · ".join(parts)
+
+
+def prescription_item_context(item) -> dict:
+    generic = (item.generic_name or item.drug_name or "").strip()
+    frequency = (item.frequency or "").strip()
+    duration = (item.duration or "").strip()
+    instructions = (item.instructions or "").strip()
+    return {
+        "index": 0,
+        "name": item.drug_name,
+        "medication": item.drug_name,
+        "generic_name": generic,
+        "generic": generic or "—",
+        "strength": item.strength or "",
+        "dosage": item.dosage or "",
+        "route": item.route or "",
+        "frequency": frequency,
+        "freq_short": freq_short(frequency),
+        "duration": duration,
+        "duration_display": duration_display(duration, instructions),
+        "duration_urdu": "",
+        "instructions": instructions,
+    }
+
+
 def build_rx_context(db: Session, visit: Visit) -> dict:
     cfg = clinic_map(db)
     patient = visit.patient
@@ -217,19 +260,9 @@ def build_rx_context(db: Session, visit: Visit) -> dict:
     medicines = []
     if visit.prescription:
         for i, item in enumerate(visit.prescription.items, start=1):
-            medicines.append(
-                {
-                    "index": i,
-                    "name": item.drug_name,
-                    "generic_name": item.generic_name,
-                    "strength": item.strength,
-                    "dosage": item.dosage,
-                    "route": item.route,
-                    "frequency": item.frequency,
-                    "duration": item.duration,
-                    "instructions": item.instructions,
-                }
-            )
+            med = prescription_item_context(item)
+            med["index"] = i
+            medicines.append(med)
     logo = cfg.get("logo_path") or ""
     logo_url = f"/uploads/{Path(logo).name}" if logo else ""
     smoker = bool(history and history.smoking and history.smoking != "Never")

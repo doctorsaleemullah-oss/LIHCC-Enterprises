@@ -46,6 +46,7 @@ from app.models import (
     InvestigationType,
     Patient,
     PatientInvestigation,
+    Prescription,
     PrescriptionTemplate,
     User,
     Visit,
@@ -418,7 +419,7 @@ def print_rx(visit_id: int, db: Session = Depends(get_db), user: User = Depends(
             joinedload(Visit.patient),
             joinedload(Visit.vitals),
             joinedload(Visit.consultation),
-            joinedload(Visit.prescription),
+            joinedload(Visit.prescription).joinedload(Prescription.items),
             joinedload(Visit.investigations).joinedload(PatientInvestigation.inv_type),
             joinedload(Visit.cardiologist),
         )
