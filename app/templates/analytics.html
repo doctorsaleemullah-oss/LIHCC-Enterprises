@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block heading %}Analytics{% endblock %}
+{% block sub %}Disease prevalence, prescribing, and investigation volume{% endblock %}
+{% block body %}
+<section class="stats">
+  <article><span>Patients</span><strong>{{ total_patients }}</strong></article>
+  <article><span>Visits</span><strong>{{ total_visits }}</strong></article>
+  {% for status, n in status_counts.items() %}
+  <article><span>{{ STATUS_LABELS.get(status, status) }}</span><strong>{{ n }}</strong></article>
+  {% endfor %}
+</section>
+<div class="grid-2">
+  <section class="card">
+    <h2>Diagnoses</h2>
+    {% for name, n in dx_counts %}
+    <div class="bar-row"><span>{{ name }}</span><div class="bar"><i style="width: {{ (n / (dx_counts[0][1] if dx_counts else 1) * 100)|int }}%"></i></div><b>{{ n }}</b></div>
+    {% else %}<p class="empty">No diagnoses yet.</p>{% endfor %}
+  </section>
+  <section class="card">
+    <h2>Most prescribed</h2>
+    {% for d in drug_rows %}
+    <div class="bar-row"><span>{{ d.name }} {{ d.strength }}</span><b>{{ d.usage_count }}</b></div>
+    {% else %}<p class="empty">No prescriptions yet.</p>{% endfor %}
+  </section>
+</div>
+<section class="card">
+  <h2>Investigations ordered</h2>
+  {% for name, n in inv_stats %}
+  <div class="bar-row"><span>{{ name }}</span><b>{{ n }}</b></div>
+  {% else %}<p class="empty">No investigations yet.</p>{% endfor %}
+</section>
+{% endblock %}

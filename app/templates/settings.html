@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block heading %}Settings{% endblock %}
+{% block sub %}Clinic branding, contact, and prescription header{% endblock %}
+{% block body %}
+<form id="settings-form" class="stack">
+  {% for cat, rows in grouped.items() %}
+  <section class="card">
+    <h2>{{ cat|title }}</h2>
+    {% for row in rows %}
+      {% if row.key.endswith('_path') %}
+      <label>{{ row.label }}</label>
+      <p class="muted sm">Current: {{ row.value or 'none' }}</p>
+      {% else %}
+      <label>{{ row.label }}</label>
+      <input name="{{ row.key }}" value="{{ row.value }}">
+      {% endif %}
+    {% endfor %}
+  </section>
+  {% endfor %}
+  <button class="btn primary" type="submit">Save settings</button>
+</form>
+<section class="card">
+  <h2>Logo</h2>
+  <input type="file" accept="image/*" onchange="uploadLogo(this)">
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('settings-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = Object.fromEntries(new FormData(e.target).entries());
+  const res = await AHC.postJSON('/api/settings', payload);
+  if (!res.ok) { AHC.toast('Save failed', 'error'); return; }
+  AHC.toast('Settings saved');
+});
+async function uploadLogo(input) {
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  const res = await fetch('/api/settings/logo', { method: 'POST', body: fd });
+  if (!res.ok) { AHC.toast('Upload failed', 'error'); return; }
+  AHC.toast('Logo updated');
+  location.reload();
+}
+</script>
+{% endblock %}

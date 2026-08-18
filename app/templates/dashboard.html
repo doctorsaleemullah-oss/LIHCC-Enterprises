@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block heading %}Good day, {{ user.full_name.split(' ')[0] }}{% endblock %}
+{% block sub %}{{ today.strftime('%A, %d %B %Y') }} · today’s clinic queue{% endblock %}
+{% block body %}
+<section class="stats">
+  <article><span>Today’s tokens</span><strong>{{ counts.today }}</strong></article>
+  <article><span>Waiting vitals</span><strong>{{ counts.vitals }}</strong></article>
+  <article><span>Waiting doctor</span><strong>{{ counts.doctor }}</strong></article>
+  <article><span>Awaiting labs</span><strong>{{ counts.labs }}</strong></article>
+  <article><span>Completed</span><strong>{{ counts.done }}</strong></article>
+  <article><span>Patients</span><strong>{{ counts.patients }}</strong></article>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Today’s queue</h2>
+    {% if queue %}
+    <table>
+      <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for v in queue %}
+        <tr>
+          <td class="token">{{ v.token_number }}</td>
+          <td>
+            <a href="/patients/{{ v.patient_id }}">{{ v.patient.name }}</a>
+            <div class="muted sm">{{ v.patient.patient_code }} · {{ v.visit_type.replace('_',' ') }}</div>
+          </td>
+          <td>{{ v.cardiologist.full_name if v.cardiologist else '—' }}</td>
+          <td><span class="pill {{ v.status|lower }}">{{ STATUS_LABELS.get(v.status, v.status) }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">No visits registered today.</p>
+    {% endif %}
+  </section>
+  <section class="card">
+    <h2>Recent visits</h2>
+    {% for v in recent %}
+    <a class="row-link" href="{% if user.role in ['CARDIOLOGIST','ADMIN'] %}/consultation/{{ v.id }}{% else %}/patients/{{ v.patient_id }}{% endif %}">
+      <div>
+        <strong>{{ v.patient.name }}</strong>
+        <div class="muted sm">{{ v.patient.patient_code }} · {{ v.visit_date }}</div>
+      </div>
+      <span class="pill {{ v.status|lower }}">{{ STATUS_LABELS.get(v.status, v.status) }}</span>
+    </a>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

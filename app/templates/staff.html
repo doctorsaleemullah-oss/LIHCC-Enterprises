@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block heading %}Staff{% endblock %}
+{% block sub %}Role-based clinic logins{% endblock %}
+{% block body %}
+<div class="grid-2">
+  <section class="card">
+    <h2>Add login</h2>
+    <form id="staff-form" class="stack">
+      <label>Full name</label><input name="full_name" required>
+      <label>Username</label><input name="username" required>
+      <label>Password</label><input name="password" type="password" required>
+      <label>Role</label>
+      <select name="role">
+        <option>RECEPTION</option>
+        <option>ATTENDANT</option>
+        <option>CARDIOLOGIST</option>
+        <option>ADMIN</option>
+      </select>
+      <button class="btn primary" type="submit">Add staff</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Accounts</h2>
+    {% for s in staff %}
+    <div class="row-link" style="cursor:default">
+      <div>
+        <strong>{{ s.full_name }}</strong>
+        <div class="muted sm">@{{ s.username }} · {{ s.role }}</div>
+      </div>
+      <button class="btn sm ghost" type="button" onclick="toggleStaff({{ s.id }}, {{ 'false' if s.is_active else 'true' }})">{{ 'Disable' if s.is_active else 'Enable' }}</button>
+    </div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('staff-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = Object.fromEntries(new FormData(e.target).entries());
+  const res = await AHC.postJSON('/api/staff', payload);
+  if (!res.ok) { AHC.toast(res.detail || 'Failed', 'error'); return; }
+  AHC.toast('Staff added');
+  location.reload();
+});
+async function toggleStaff(id, active) {
+  const res = await AHC.postJSON('/api/staff/' + id, { is_active: active });
+  if (!res.ok) { AHC.toast('Failed', 'error'); return; }
+  location.reload();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block heading %}{{ patient.name }}{% endblock %}
+{% block sub %}{{ patient.patient_code }} · {{ patient.age or '—' }}/{{ patient.gender }} · {{ patient.phone or 'No phone' }}{% endblock %}
+{% block actions %}<a class="btn ghost" href="/patients">Back</a>{% endblock %}
+{% block body %}
+<section class="card">
+  <p>{{ patient.address or 'No address' }} · CNIC {{ patient.cnic or '—' }}</p>
+  {% if patient.medical_history %}
+  <div class="chips static">
+    {% if patient.medical_history.htn %}<span class="chip on">HTN</span>{% endif %}
+    {% if patient.medical_history.dm %}<span class="chip on">DM</span>{% endif %}
+    {% if patient.medical_history.family_cad %}<span class="chip on">FH IHD</span>{% endif %}
+    {% if patient.medical_history.smoking and patient.medical_history.smoking != 'Never' %}<span class="chip on">{{ patient.medical_history.smoking }}</span>{% endif %}
+    {% if patient.medical_history.allergies %}<span class="chip">Allergies: {{ patient.medical_history.allergies }}</span>{% endif %}
+  </div>
+  {% endif %}
+</section>
+<section class="card">
+  <h2>Visit history</h2>
+  {% for v in visits %}
+  <article class="visit-card">
+    <header>
+      <strong>{{ v.visit_date }} · Token #{{ v.token_number }} · {{ v.visit_type.replace('_',' ') }}</strong>
+      <span class="pill {{ v.status|lower }}">{{ STATUS_LABELS.get(v.status, v.status) }}</span>
+    </header>
+    <p class="muted sm">{{ v.cardiologist.full_name if v.cardiologist else '' }}
+      {% if v.vitals and v.vitals.bp_systolic %} · BP {{ v.vitals.bp_systolic }}/{{ v.vitals.bp_diastolic }}{% endif %}
+      {% if v.consultation %} · {{ diagnoses_text(v.consultation) or 'No diagnosis' }}{% endif %}
+    </p>
+    {% if user.role in ['CARDIOLOGIST','ADMIN'] %}
+    <a class="btn sm" href="/consultation/{{ v.id }}">Open consultation</a>
+    <a class="btn sm ghost" href="/print/rx/{{ v.id }}" target="_blank">Print Rx</a>
+    {% endif %}
+  </article>
+  {% else %}
+  <p class="empty">No visits yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block heading %}Consultation queue{% endblock %}
+{% block sub %}Open a visit to complete history, examination, Rx, and investigations{% endblock %}
+{% block body %}
+<section class="card">
+  {% if visits %}
+  <table>
+    <thead><tr><th>#</th><th>Patient</th><th>Type</th><th>Vitals</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for v in visits %}
+      <tr>
+        <td class="token">{{ v.token_number }}</td>
+        <td>{{ v.patient.name }}<div class="muted sm">{{ v.patient.patient_code }} · {{ v.patient.age or '—' }}/{{ v.patient.gender }}</div></td>
+        <td>{{ v.visit_type.replace('_',' ') }}</td>
+        <td>
+          {% if v.vitals and v.vitals.bp_systolic %}{{ v.vitals.bp_systolic }}/{{ v.vitals.bp_diastolic }} · {{ v.vitals.pulse or '—' }} bpm
+          {% else %}—{% endif %}
+        </td>
+        <td><span class="pill {{ v.status|lower }}">{{ STATUS_LABELS.get(v.status, v.status) }}</span></td>
+        <td><a class="btn sm" href="/consultation/{{ v.id }}">Open</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No open consultations.</p>
+  {% endif %}
+</section>
+{% endblock %}

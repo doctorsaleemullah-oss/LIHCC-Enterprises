@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block heading %}Investigations{% endblock %}
+{% block sub %}Enter results and upload reports{% endblock %}
+{% block body %}
+<div class="tabs">
+  <a class="{% if status=='REQUESTED' %}active{% endif %}" href="/investigations?status=REQUESTED">Requested</a>
+  <a class="{% if status=='COMPLETED' %}active{% endif %}" href="/investigations?status=COMPLETED">Completed</a>
+  <a class="{% if status=='ALL' %}active{% endif %}" href="/investigations?status=ALL">All</a>
+</div>
+<section class="card">
+  {% for item in items %}
+  <div class="inv-row">
+    <div>
+      <strong>{{ item.inv_type.name if item.inv_type else 'Investigation' }}</strong>
+      <div class="muted sm">{{ item.visit.patient.name }} · {{ item.visit.patient.patient_code }} · {{ item.requested_at.strftime('%d %b %Y') }}</div>
+    </div>
+    <span class="pill {{ item.status|lower }}">{{ item.status }}</span>
+    <form class="row inv-form" data-id="{{ item.id }}">
+      <input name="result_text" placeholder="Result" value="{{ item.result_text }}">
+      <button class="btn sm primary" type="submit">Save</button>
+      <label class="btn sm ghost">Upload<input type="file" hidden onchange="uploadInv({{ item.id }}, this)"></label>
+      {% if item.result_file %}<a href="/uploads/{{ item.result_file }}" target="_blank">File</a>{% endif %}
+    </form>
+  </div>
+  {% else %}
+  <p class="empty">Nothing in this list.</p>
+  {% endfor %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.inv-form').forEach(form => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = form.dataset.id;
+    const res = await AHC.postJSON('/api/investigations/' + id, { result_text: form.result_text.value, complete: true });
+    if (!res.ok) { AHC.toast(res.detail || 'Failed', 'error'); return; }
+    AHC.toast('Result saved');
+    location.reload();
+  });
+});
+async function uploadInv(id, input) {
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  const res = await fetch('/api/investigations/' + id + '/upload', { method: 'POST', body: fd });
+  const data = await res.json();
+  if (!res.ok) { AHC.toast(data.detail || 'Upload failed', 'error'); return; }
+  AHC.toast('File uploaded');
+  location.reload();
+}
+</script>
+{% endblock %}

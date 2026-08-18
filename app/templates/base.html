@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ clinic_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      {% if clinic.logo_path %}
+      <img src="/uploads/{{ clinic.logo_path }}" alt="" class="brand-logo">
+      {% else %}
+      <div class="brand-mark">♥</div>
+      {% endif %}
+      <div>
+        <strong>{{ clinic_name }}</strong>
+        <span>{{ clinic_subtitle }}</span>
+      </div>
+    </div>
+    <nav>
+      {% for item in nav_items %}
+      <a href="{{ item.href }}" class="{% if page == item.href.strip('/') %}active{% endif %}">{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-user">
+      <div>
+        <strong>{{ user.full_name }}</strong>
+        <span>{{ user.role|title }}</span>
+      </div>
+      <a href="/logout" class="logout">Sign out</a>
+    </div>
+  </aside>
+  <main class="content">
+    <header class="top">
+      <div>
+        <h1>{% block heading %}Dashboard{% endblock %}</h1>
+        <p class="muted">{% block sub %}Cardiology clinic desk{% endblock %}</p>
+      </div>
+      <div class="top-actions">{% block actions %}{% endblock %}</div>
+    </header>
+    {% block body %}{% endblock %}
+  </main>
+  <div id="toast" class="toast" hidden></div>
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
