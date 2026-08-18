@@ -175,6 +175,7 @@
       </select>
     </div>
   </div>
+  <div id="rx-header" class="rx-header"><span>Brand name</span><span>Generic</span><span>Strength</span><span>Dosage</span><span>Route</span><span>Frequency</span><span>Duration</span><span>Instructions</span><span></span></div>
   <div id="rx-rows"></div>
   <button class="btn ghost" type="button" onclick="addRxRow()">+ Add medicine</button>
   <label>Instructions (English)</label>
@@ -217,7 +218,8 @@ function addRxRow(item={}) {
   div.className = 'rx-row';
   div.innerHTML = `
     <input class="drug_id" type="hidden" value="${item.drug_id||''}">
-    <input class="drug_name" placeholder="Medicine" value="${item.drug_name||''}">
+    <input class="drug_name" placeholder="Brand name" value="${item.drug_name||''}">
+    <input class="generic_name" placeholder="Generic" value="${item.generic_name||''}">
     <input class="strength" placeholder="Strength" value="${item.strength||''}">
     <select class="dosage">${opt(DOSAGES, item.dosage||'1 tab')}</select>
     <select class="route">${opt(ROUTES, item.route||'Oral')}</select>
@@ -236,7 +238,7 @@ function collectRx() {
   return [...document.querySelectorAll('.rx-row')].map(row => ({
     drug_id: row.querySelector('.drug_id').value || null,
     drug_name: row.querySelector('.drug_name').value,
-    generic_name: row.querySelector('.drug_name').value,
+    generic_name: row.querySelector('.generic_name').value || row.querySelector('.drug_name').value,
     strength: row.querySelector('.strength').value,
     dosage: row.querySelector('.dosage').value,
     route: row.querySelector('.route').value,

@@ -208,7 +208,7 @@ def consultation_form(visit_id: int, request: Request, db: Session = Depends(get
             joinedload(Visit.patient),
             joinedload(Visit.vitals),
             joinedload(Visit.consultation),
-            joinedload(Visit.prescription),
+            joinedload(Visit.prescription).joinedload(Prescription.items),
             joinedload(Visit.investigations).joinedload(PatientInvestigation.inv_type),
             joinedload(Visit.cardiologist),
         )

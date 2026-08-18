@@ -66,7 +66,7 @@ const AHC = {
         const q = input.value.trim();
         const rows = await fetch("/api/drugs?q=" + encodeURIComponent(q)).then(r => r.json());
         box.innerHTML = rows.map(d =>
-          `<button type="button" data-id="${d.id}">${d.name} ${d.strength}</button>`
+          `<button type="button" data-id="${d.id}"><strong>${d.name}</strong> ${d.strength}${d.generic_name && d.generic_name !== d.name ? ' <span style="color:#64748b;font-size:12px">(' + d.generic_name + ')</span>' : ''}</button>`
         ).join("");
         box.style.display = rows.length ? "block" : "none";
         box.querySelectorAll("button").forEach(btn => btn.onclick = () => {
