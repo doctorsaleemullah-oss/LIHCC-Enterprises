@@ -44,8 +44,8 @@ Open **http://localhost:8000** in your browser.
 | Reception | reception | reception123 |
 | Clinic Attendant | attendant | attendant123 |
 | Cardiologist | dr_khan | doctor123 |
-| Cardiologist | dr_ali | doctor123 |
-| Cardiologist | dr_saleem | doctor123 |
+
+Other doctor accounts keep the passwords already stored in `ahc_clinic.db`. An admin can reset them from **Staff**.
 
 **Change all passwords before production use.**
 

@@ -41,6 +41,8 @@ from app.helpers import (
     render_prescription,
 )
 from app.models import (
+    ClinicSetting,
+    Drug,
     InvestigationType,
     Patient,
     PatientInvestigation,

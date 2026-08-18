@@ -43,8 +43,10 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException):
-        wants_html = "text/html" in request.headers.get("accept", "")
-        if wants_html and not request.url.path.startswith("/api"):
+        accept = request.headers.get("accept", "")
+        is_api = request.url.path.startswith("/api")
+        wants_json = "application/json" in accept and "text/html" not in accept
+        if not is_api and not wants_json:
             if exc.status_code == 401:
                 return RedirectResponse("/login", status_code=303)
             if exc.status_code == 403:

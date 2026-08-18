@@ -255,6 +255,7 @@ async def save_consultation(visit_id: int, request: Request, db: Session = Depen
     for inv_id, item in list(existing.items()):
         if inv_id not in keep and item.status == "REQUESTED" and not item.result_text:
             db.delete(item)
+    db.flush()
 
     pending = (
         db.query(PatientInvestigation)
