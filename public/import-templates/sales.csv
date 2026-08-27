@@ -1,0 +1,2 @@
+date,customer_code,product_code,qty,unit_price,payment_method,paid_amount,notes
+2023-04-20,CUS-0001,ITM-0001,1,48000,credit,0,Historical sale — cost taken from lots

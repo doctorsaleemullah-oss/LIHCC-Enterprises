@@ -1,0 +1,2 @@
+code,name,generic,category,brand,catalogue,purchase_price,selling_price,min_stock,opening_stock,opening_cost,notes
+ITM-0100,Example Stent 2.5 x 12,DES,Coronary stents,CardioStent,DES-250-12,40000,48000,2,0,0,Sample row

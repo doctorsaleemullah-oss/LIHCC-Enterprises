@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #1d4ed8;
+  --brand-dark: #1e3a8a;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --bg: #f1f5f9;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-100 text-slate-900 antialiased;
+  font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white shadow-card border border-slate-100;
+  }
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-700 text-white hover:bg-brand-800 shadow-sm;
+  }
+  .btn-green {
+    @apply btn bg-emerald-600 text-white hover:bg-emerald-700;
+  }
+  .btn-ghost {
+    @apply btn bg-slate-100 text-slate-800 hover:bg-slate-200;
+  }
+  .btn-danger {
+    @apply btn bg-red-50 text-red-700 hover:bg-red-100;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide;
+  }
+  .badge-green {
+    @apply badge bg-emerald-50 text-emerald-700;
+  }
+  .badge-red {
+    @apply badge bg-red-50 text-red-700;
+  }
+  .badge-amber {
+    @apply badge bg-amber-50 text-amber-700;
+  }
+  .badge-blue {
+    @apply badge bg-blue-50 text-blue-700;
+  }
+  .table-wrap {
+    @apply overflow-x-auto;
+  }
+  .data-table {
+    @apply w-full text-sm;
+  }
+  .data-table th {
+    @apply text-left text-[11px] font-bold uppercase tracking-wide text-slate-500 px-4 py-3 border-b border-slate-100 bg-slate-50/80 whitespace-nowrap;
+  }
+  .data-table td {
+    @apply px-4 py-3 border-b border-slate-50 align-middle;
+  }
+  .data-table tr:hover td {
+    @apply bg-slate-50/70;
+  }
+  .kpi {
+    @apply card p-5;
+  }
+  .kpi .lbl {
+    @apply text-xs font-semibold uppercase tracking-wide text-slate-500;
+  }
+  .kpi .val {
+    @apply mt-2 text-2xl font-extrabold tracking-tight;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .print-sheet {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

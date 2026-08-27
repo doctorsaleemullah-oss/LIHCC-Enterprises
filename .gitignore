@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+.env
+.env.local
+uploads
+prisma/data/*.db
+prisma/data/*.db-journal
+prisma/data/*.db-wal
+prisma/data/*.db-shm
+backups
+*.log
+.DS_Store

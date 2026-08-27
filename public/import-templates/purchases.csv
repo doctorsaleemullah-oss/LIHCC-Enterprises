@@ -1,0 +1,2 @@
+date,vendor_code,product_code,qty,unit_price,batch,payment_method,paid_amount,notes
+2023-03-15,VEN-0001,ITM-0001,2,40000,ST-HIST,cash,80000,Historical purchase
