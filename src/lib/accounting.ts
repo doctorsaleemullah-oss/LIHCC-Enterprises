@@ -68,7 +68,10 @@ export async function postJournal(
     throw new Error(`Unbalanced journal (${debit} Dr / ${credit} Cr): ${params.memo}`);
   }
 
-  const number = await takeNextNumber("journal", "JV");
+  const number = await takeNextNumber("journal", "JV", db);
+  const codes = [...new Set(cleaned.map((l) => l.code))];
+  const accounts = await db.glAccount.findMany({ where: { code: { in: codes } } });
+  const byCode = new Map(accounts.map((a) => [a.code, a]));
   const created = await db.journalEntry.create({
     data: {
       number,
@@ -82,19 +85,18 @@ export async function postJournal(
       paymentId: params.paymentId,
       expenseId: params.expenseId,
       lines: {
-        create: await Promise.all(
-          cleaned.map(async (l) => {
-            const acc = await accountByCode(db, l.code);
-            return {
-              accountId: acc.id,
-              debit: l.debit,
-              credit: l.credit,
-              partyType: l.partyType ?? "",
-              partyId: l.partyId ?? "",
-              memo: l.memo ?? "",
-            };
-          }),
-        ),
+        create: cleaned.map((l) => {
+          const acc = byCode.get(l.code);
+          if (!acc) throw new Error(`Missing GL account ${l.code}`);
+          return {
+            accountId: acc.id,
+            debit: l.debit,
+            credit: l.credit,
+            partyType: l.partyType ?? "",
+            partyId: l.partyId ?? "",
+            memo: l.memo ?? "",
+          };
+        }),
       },
     },
     include: { lines: true },

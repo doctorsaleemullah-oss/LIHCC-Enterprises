@@ -20,7 +20,10 @@ function rangeFromParam(period?: string, from?: string, to?: string) {
     return { from: new Date(now.getFullYear(), 0, 1), to: now };
   }
   if (period === "all") return undefined;
-  return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+  if (period === "month") {
+    return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+  }
+  return { from: new Date(now.getFullYear(), 0, 1), to: now };
 }
 
 export default async function DashboardPage({
@@ -40,13 +43,13 @@ export default async function DashboardPage({
       <PageHeader title="Dashboard" subtitle={`${company?.name} — live financial position`} />
       <div className="no-print flex flex-wrap gap-2 mb-5">
         {[
-          ["month", "This month"],
-          ["today", "Today"],
-          ["week", "This week"],
-          ["year", "This year"],
-          ["all", "All time"],
+              ["year", "This year"],
+              ["month", "This month"],
+              ["today", "Today"],
+              ["week", "This week"],
+              ["all", "All time"],
         ].map(([k, label]) => (
-          <Link key={k} href={`/dashboard?period=${k}`} className={`btn-ghost ${sp.period === k || (!sp.period && k === "month") ? "bg-brand-700 text-white hover:bg-brand-800" : ""}`}>
+          <Link key={k} href={`/dashboard?period=${k}`} className={`btn-ghost ${sp.period === k || (!sp.period && k === "year") ? "bg-brand-700 text-white hover:bg-brand-800" : ""}`}>
             {label}
           </Link>
         ))}

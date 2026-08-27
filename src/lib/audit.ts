@@ -1,5 +1,8 @@
 import { prisma } from "./prisma";
 import type { SessionUser } from "./auth";
+import type { Prisma, PrismaClient } from "@prisma/client";
+
+type Db = PrismaClient | Prisma.TransactionClient;
 
 export async function audit(params: {
   user?: SessionUser | null;
@@ -24,33 +27,16 @@ export async function audit(params: {
 }
 
 export async function nextNumber(key: string, prefix: string): Promise<string> {
-  const row = await prisma.sequence.upsert({
+  return takeNextNumber(key, prefix);
+}
+
+export async function takeNextNumber(key: string, prefix: string, db: Db = prisma): Promise<string> {
+  const result = await db.sequence.upsert({
     where: { key },
     update: { nextNumber: { increment: 1 }, prefix },
     create: { key, prefix, nextNumber: 2 },
   });
-  const n = row.nextNumber === 2 && row.prefix === prefix ? 1 : row.nextNumber - 1;
-  // upsert increment happens after create with nextNumber 2, so first call yields 1 via create path.
-  const seq = await prisma.sequence.findUniqueOrThrow({ where: { key } });
-  const num = Math.max(1, seq.nextNumber - 1);
-  return `${prefix}-${String(n || num).padStart(5, "0")}`;
-}
-
-export async function takeNextNumber(key: string, prefix: string): Promise<string> {
-  const result = await prisma.$transaction(async (tx) => {
-    const existing = await tx.sequence.findUnique({ where: { key } });
-    if (!existing) {
-      await tx.sequence.create({ data: { key, prefix, nextNumber: 2 } });
-      return 1;
-    }
-    const current = existing.nextNumber;
-    await tx.sequence.update({
-      where: { key },
-      data: { nextNumber: current + 1, prefix },
-    });
-    return current;
-  });
-  return `${prefix}-${String(result).padStart(5, "0")}`;
+  return `${prefix}-${String(result.nextNumber - 1).padStart(5, "0")}`;
 }
 
 export function randomToken(len = 24): string {
