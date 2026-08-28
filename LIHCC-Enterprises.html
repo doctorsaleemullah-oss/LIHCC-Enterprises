@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIHCC Enterprises — Inventory, Sales & Accounting</title>
+<style>
+:root{--blue:#1d4ed8;--blue2:#1e3a8a;--green:#059669;--red:#dc2626;--amber:#d97706;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f1f5f9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+button,input,select,textarea{font:inherit}
+a{color:var(--blue);text-decoration:none}
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#0f172a;color:#cbd5e1;display:flex;flex-direction:column;flex-shrink:0}
+.brand{padding:18px 16px;border-bottom:1px solid #1e293b}
+.brand .k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#93c5fd;font-weight:700}
+.brand h1{font-size:15px;color:#fff;margin-top:4px;line-height:1.3}
+.nav{flex:1;overflow:auto;padding:10px 8px}
+.nav a,.nav button.navbtn{display:flex;width:100%;align-items:center;gap:10px;padding:9px 12px;border:0;background:none;color:#cbd5e1;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;text-align:left}
+.nav a:hover,.nav button.navbtn:hover,.nav a.on{background:#1e293b;color:#fff}
+.side-foot{padding:14px;border-top:1px solid #1e293b;font-size:12px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:20}
+.top input.search{flex:1;max-width:520px;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.content{padding:20px;flex:1}
+h2.page{font-size:24px;font-weight:800}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end;justify-content:space-between;margin-bottom:14px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card{background:#fff;border:1px solid #eef2f7;border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.04)}
+.kpi{padding:16px 18px}
+.kpi .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.kpi .v{font-size:22px;font-weight:800;margin-top:6px}
+.btn{border:0;border-radius:11px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}
+.btn-p{background:var(--blue);color:#fff}
+.btn-g{background:var(--green);color:#fff}
+.btn-x{background:#e2e8f0;color:#0f172a}
+.btn-d{background:#fef2f2;color:var(--red)}
+.btn:disabled{opacity:.5}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);background:#f8fafc}
+td{padding:10px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tr:hover td{background:#f8fafc}
+.label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.input,select.input,textarea.input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff}
+.badge{display:inline-flex;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;text-transform:uppercase}
+.b-g{background:#ecfdf5;color:#047857}.b-r{background:#fef2f2;color:#b91c1c}.b-a{background:#fffbeb;color:#b45309}.b-b{background:#eff6ff;color:#1d4ed8}
+.login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.hero{background:linear-gradient(135deg,#1e3a8a,#1d4ed8,#047857);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between}
+.box{display:grid;place-items:center;padding:24px}
+.box .card{width:100%;max-width:400px;padding:28px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;z-index:99;display:none}
+.toast.ok{background:var(--green)}.toast.err{background:var(--red)}
+.item-row{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#f8fafc}
+.mobile-nav{display:none;overflow:auto;white-space:nowrap;padding:8px;background:#fff;border-bottom:1px solid var(--line)}
+.profit{color:var(--green);font-weight:800}.loss{color:var(--red);font-weight:800}
+.bill{padding:0;overflow:hidden}
+.bill-h{background:#1e3a8a;color:#fff;padding:22px 28px;display:flex;justify-content:space-between;gap:12px}
+.muted{color:var(--muted);font-size:12px}
+.empty{padding:36px;text-align:center;color:var(--muted)}
+@media(max-width:900px){.sidebar{display:none}.login{grid-template-columns:1fr}.hero{display:none}.mobile-nav{display:block}}
+@media print{.no-print{display:none!important}body{background:#fff}.sidebar,.top,.mobile-nav{display:none!important}.content{padding:0}.card{box-shadow:none;border:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+<script>
+"use strict";
+const KEY="LIHCC_HTML_V1";
+const MODULES=["dashboard","products","purchases","sales","consignments","customers","vendors","payments","expenses","accounting","reports","users","settings"];
+const LABELS={dashboard:"Dashboard",products:"Products / Inventory",purchases:"Purchases",sales:"Sales / Invoices",consignments:"Consignments",customers:"Customers",vendors:"Vendors",payments:"Payments",expenses:"Expenses",accounting:"Accounting / Ledgers",reports:"Reports",users:"Users & Permissions",settings:"Settings"};
+const RANK={none:0,view:1,create:2,edit:3,void:4,admin:5};
+const AC={CASH:"1000",BANK:"1010",AR:"1100",INV:"1200",INV_C:"1210",AP:"2000",TAX:"2100",EQ:"3000",SALES:"4000",COGS:"5000",EXP:"6000"};
+
+let S, session, screen="dashboard", pid="", q="";
+
+const $ = (id)=>document.getElementById(id);
+const esc = (s)=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const uid = (p)=>p+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);
+const round2 = n=>Math.round((Number(n)||0)*100)/100;
+const money = n=>{const v=Number(n)||0;return (v<0?"−":"")+(S.company.currencySymbol||"Rs")+" "+Math.abs(v).toLocaleString("en-PK",{minimumFractionDigits:2,maximumFractionDigits:2});};
+const fmt = d=>{if(!d)return "—";const dt=new Date(d);if(isNaN(dt))return "—";return dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});};
+const today = ()=>new Date().toISOString().slice(0,10);
+const iso = (y,m,d)=>new Date(y,m-1,d,12).toISOString();
+function toast(msg,t="ok"){const el=$("toast");el.textContent=msg;el.className="toast "+t;el.style.display="block";clearTimeout(toast._t);toast._t=setTimeout(()=>el.style.display="none",2800);}
+function can(mod,need="view"){if(!session)return false;const have=session.perms[mod]||"none";return RANK[have]>=RANK[need];}
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){S=JSON.parse(raw);return true;}}catch(e){}return false;}
+function nextNo(key,prefix){S.seq[key]=(S.seq[key]||0)+1;return prefix+"-"+String(S.seq[key]).padStart(5,"0");}
+function audit(action,type,label,prev,next){S.audit.unshift({id:uid("AU"),at:new Date().toISOString(),user:session?session.username:"system",action,type,label,prev:prev||"",next:next||""});S.audit=S.audit.slice(0,800);}
+
+function defaultPerms(role){
+  const all=Object.fromEntries(MODULES.map(m=>[m,"admin"]));
+  if(role==="Super Administrator") return all;
+  if(role==="Accountant") return {dashboard:"view",products:"view",purchases:"void",sales:"void",consignments:"edit",customers:"edit",vendors:"edit",payments:"void",expenses:"void",accounting:"admin",reports:"admin",users:"none",settings:"view"};
+  if(role==="Inventory Manager") return {dashboard:"view",products:"admin",purchases:"edit",sales:"view",consignments:"admin",customers:"view",vendors:"view",payments:"none",expenses:"none",accounting:"none",reports:"view",users:"none",settings:"none"};
+  if(role==="Sales User") return {dashboard:"view",products:"view",purchases:"none",sales:"edit",consignments:"view",customers:"edit",vendors:"none",payments:"create",expenses:"none",accounting:"none",reports:"view",users:"none",settings:"none"};
+  return Object.fromEntries(MODULES.map(m=>[m,m==="users"||m==="settings"?"none":"view"]));
+}
+
+function emptyState(){
+  return {
+    company:{name:"LIHCC Enterprises",legalName:"LIHCC Enterprises",address:"Adjacent to Luqman Cardiac Center",phone:"",whatsapp:"",email:"",ntn:"",bankName:"",bankTitle:"",bankNo:"",iban:"",footer:"Thank you for your business. Goods remain the property of LIHCC Enterprises until fully paid.",terms:"1. Payment is due as per agreed terms.\n2. Quote the invoice number on payments.\n3. Shortage/damage claims within 48 hours.\n4. Consigned items remain our property until billed.",authName:"Authorized Signatory",authTitle:"Proprietor",logo:"",sign:"",stamp:"",template:"classic",costing:"FIFO",currencySymbol:"Rs",invPrefix:"INV",purPrefix:"PUR",conPrefix:"CON"},
+    users:[], roles:[], vendors:[], customers:[], categories:[], products:[], lots:[], movements:[],
+    purchases:[], sales:[], consignments:[], payments:[], expenses:[], journals:[], accounts:[],
+    banks:[], audit:[], seq:{purchase:0,sale:0,consignment:0,payment:0,expense:0,journal:0,product:0,customer:0,vendor:0}
+  };
+}
+
+function postJournal(date,memo,source,sourceId,lines){
+  const cleaned=lines.map(l=>({...l,debit:round2(l.debit||0),credit:round2(l.credit||0)})).filter(l=>l.debit||l.credit);
+  const dr=round2(cleaned.reduce((s,l)=>s+l.debit,0)), cr=round2(cleaned.reduce((s,l)=>s+l.credit,0));
+  if(Math.abs(dr-cr)>0.05) throw new Error("Unbalanced journal "+dr+" / "+cr);
+  S.journals.push({id:uid("JV"),number:nextNo("journal","JV"),date,entered:new Date().toISOString(),memo,source,sourceId,voided:false,lines:cleaned});
+}
+
+function accBal(code){
+  let d=0,c=0;
+  S.journals.filter(j=>!j.voided).forEach(j=>j.lines.filter(l=>l.code===code).forEach(l=>{d+=l.debit;c+=l.credit;}));
+  const acc=S.accounts.find(a=>a.code===code);
+  const type=acc?acc.type:"ASSET";
+  return (type==="ASSET"||type==="EXPENSE")?round2(d-c):round2(c-d);
+}
+
+function lotsAt(productId,loc){
+  return S.lots.filter(l=>l.productId===productId && l.location===loc && l.qtyRemaining>0.0001)
+    .sort((a,b)=>String(a.received).localeCompare(String(b.received)));
+}
+function allocate(productId,qty,loc){
+  const lots=lotsAt(productId,loc||"ON_HAND");
+  const avail=lots.reduce((s,l)=>s+l.qtyRemaining,0);
+  if(avail+1e-9<qty) throw new Error("Insufficient stock. Need "+qty+", available "+round2(avail));
+  const avg=lots.reduce((s,l)=>s+l.qtyRemaining*l.unitCost,0)/(avail||1);
+  const method=S.company.costing||"FIFO";
+  const layers=[]; let rem=qty;
+  for(const lot of lots){
+    if(rem<=0) break;
+    const take=Math.min(lot.qtyRemaining,rem);
+    const unit=method==="WEIGHTED_AVERAGE"?round2(avg):lot.unitCost;
+    layers.push({lotId:lot.id,qty:take,unitCost:unit,amount:round2(take*unit),batch:lot.batch});
+    rem=round2(rem-take);
+  }
+  return layers;
+}
+function consume(layers,productId,date,type,ref,newLoc){
+  layers.forEach(ly=>{
+    const lot=S.lots.find(l=>l.id===ly.lotId); if(!lot) return;
+    lot.qtyRemaining=round2(lot.qtyRemaining-ly.qty);
+    if(newLoc){
+      S.lots.push({id:uid("LT"),productId,sourceType:type,sourceId:ref,received:date,qtyReceived:ly.qty,qtyRemaining:ly.qty,unitCost:ly.unitCost,batch:lot.batch||"",location:newLoc});
+    }
+    S.movements.unshift({id:uid("MV"),productId,lotId:ly.lotId,type,qty:newLoc? -ly.qty : -ly.qty,unitCost:ly.unitCost,date,entered:new Date().toISOString(),ref,notes:type});
+  });
+  refreshAvg(productId);
+}
+function restore(layers,productId,date,type,ref){
+  layers.forEach(ly=>{
+    const lot=S.lots.find(l=>l.id===ly.lotId);
+    if(lot) lot.qtyRemaining=round2(lot.qtyRemaining+ly.qty);
+    else S.lots.push({id:ly.lotId||uid("LT"),productId,sourceType:type,sourceId:ref,received:date,qtyReceived:ly.qty,qtyRemaining:ly.qty,unitCost:ly.unitCost,batch:"",location:"ON_HAND"});
+    S.movements.unshift({id:uid("MV"),productId,type,qty:ly.qty,unitCost:ly.unitCost,date,entered:new Date().toISOString(),ref,notes:"Void / reversal"});
+  });
+  refreshAvg(productId);
+}
+function createLot(p){
+  const lot={id:uid("LT"),productId:p.productId,sourceType:p.sourceType,sourceId:p.sourceId,received:p.date,qtyReceived:p.qty,qtyRemaining:p.qty,unitCost:p.unitCost,batch:p.batch||"",location:p.location||"ON_HAND"};
+  S.lots.push(lot);
+  S.movements.unshift({id:uid("MV"),productId:p.productId,lotId:lot.id,type:p.sourceType,qty:p.qty,unitCost:p.unitCost,date:p.date,entered:new Date().toISOString(),ref:p.sourceId,notes:p.notes||""});
+  const prod=S.products.find(x=>x.id===p.productId);
+  if(prod && p.sourceType==="PURCHASE"){prod.lastPurchasePrice=p.unitCost;prod.purchasePrice=p.unitCost;}
+  refreshAvg(p.productId);
+  return lot;
+}
+function refreshAvg(productId){
+  const lots=S.lots.filter(l=>l.productId===productId && l.qtyRemaining>0);
+  const qty=lots.reduce((s,l)=>s+l.qtyRemaining,0), val=lots.reduce((s,l)=>s+l.qtyRemaining*l.unitCost,0);
+  const p=S.products.find(x=>x.id===productId); if(p) p.averageCost=qty?round2(val/qty):0;
+}
+function stock(productId){
+  const lots=S.lots.filter(l=>l.productId===productId);
+  return {
+    onHand:round2(lots.filter(l=>l.location==="ON_HAND").reduce((s,l)=>s+l.qtyRemaining,0)),
+    consigned:round2(lots.filter(l=>l.location==="CONSIGNED").reduce((s,l)=>s+l.qtyRemaining,0)),
+    value:round2(lots.reduce((s,l)=>s+l.qtyRemaining*l.unitCost,0))
+  };
+}
+function custOut(id){
+  const c=S.customers.find(x=>x.id===id); if(!c) return 0;
+  const sales=S.sales.filter(s=>s.customerId===id && s.status==="POSTED");
+  return round2((c.opening||0)+sales.reduce((s,x)=>s+x.total-x.paid,0));
+}
+function vendOut(id){
+  const v=S.vendors.find(x=>x.id===id); if(!v) return 0;
+  const p=S.purchases.filter(x=>x.vendorId===id && x.status==="POSTED");
+  return round2((v.opening||0)+p.reduce((s,x)=>s+x.total-x.paid,0));
+}
+
+function seed(){
+  S=emptyState();
+  S.accounts=[
+    {code:AC.CASH,name:"Cash on Hand",type:"ASSET"},{code:AC.BANK,name:"Bank Accounts",type:"ASSET"},
+    {code:AC.AR,name:"Accounts Receivable",type:"ASSET"},{code:AC.INV,name:"Inventory — On Hand",type:"ASSET"},
+    {code:AC.INV_C,name:"Inventory — Consigned",type:"ASSET"},{code:AC.AP,name:"Accounts Payable",type:"LIABILITY"},
+    {code:AC.TAX,name:"Tax Payable",type:"LIABILITY"},{code:AC.EQ,name:"Opening Balance Equity",type:"EQUITY"},
+    {code:AC.SALES,name:"Sales Revenue",type:"REVENUE"},{code:AC.COGS,name:"Cost of Goods Sold",type:"EXPENSE"},
+    {code:AC.EXP,name:"Operating Expenses",type:"EXPENSE"}
+  ];
+  S.banks=[{id:"cash",name:"Cash in Hand",isCash:true},{id:"bank",name:"Business Bank Account",isCash:false}];
+  ["Super Administrator","Accountant","Inventory Manager","Sales User","Viewer"].forEach(n=>S.roles.push({id:uid("RL"),name:n,perms:defaultPerms(n)}));
+  const r=n=>S.roles.find(x=>x.name===n).id;
+  S.users=[
+    {id:"u1",username:"admin",password:"Admin@123",name:"System Administrator",roleId:r("Super Administrator"),active:true},
+    {id:"u2",username:"accountant",password:"Accounts@123",name:"Accounts Officer",roleId:r("Accountant"),active:true},
+    {id:"u3",username:"inventory",password:"Stock@123",name:"Inventory Manager",roleId:r("Inventory Manager"),active:true},
+    {id:"u4",username:"sales",password:"Sales@123",name:"Sales User",roleId:r("Sales User"),active:true},
+    {id:"u5",username:"viewer",password:"Viewer@123",name:"Read Only",roleId:r("Viewer"),active:true}
+  ];
+  ["Coronary stents","Balloons","PTCA wires","Catheters","Sheaths","Guidewires","Medical consumables","Other medical equipment/items"].forEach(n=>S.categories.push({id:uid("CAT"),name:n}));
+  const cat=n=>S.categories.find(c=>c.name===n).id;
+  const addP=(code,name,catn,brand,catNo,cost,sell,min)=>{
+    const p={id:uid("PR"),code,name,generic:"",categoryId:cat(catn),brand,catalogue:catNo,unit:"Piece",minStock:min,purchasePrice:cost,sellingPrice:sell,lastPurchasePrice:cost,averageCost:cost,tax:0,active:true,notes:""};
+    S.products.push(p); return p;
+  };
+  const stent=addP("ITM-0001","Drug Eluting Coronary Stent 2.75 x 18 mm","Coronary stents","CardioStent","DES-275-18",52000,62000,2);
+  const stent2=addP("ITM-0002","Drug Eluting Coronary Stent 3.0 x 23 mm","Coronary stents","CardioStent","DES-300-23",54000,65000,2);
+  const balloon=addP("ITM-0003","PTCA Balloon 2.5 x 15 mm","Balloons","FlexBalloon","BAL-250-15",12000,16000,4);
+  const wire=addP("ITM-0004","PTCA Guidewire 0.014\" 180 cm","PTCA wires","WirePro","WIR-014-180",4500,6500,10);
+  addP("ITM-0005","Judkins Right Catheter 6F","Catheters","CathLine","JR-6F",1800,2800,8);
+  const sheath=addP("ITM-0006","Introducer Sheath 6F 11 cm","Sheaths","AccessMed","SH-6F-11",900,1500,12);
+  addP("ITM-0007","Hydrophilic Guidewire 0.035\" 150 cm","Guidewires","GlidePath","GW-035-150",2200,3200,6);
+  addP("ITM-0008","Contrast Syringe 10 ml (sterile)","Medical consumables","MediCons","SYR-10",80,140,50);
+
+  S.customers.push({id:"c1",code:"CUS-0001",name:"Luqman Cardiac Center",org:"Luqman Cardiac Center (LIHCC)",phone:"",email:"",address:"",ntn:"",terms:"Monthly settlement",opening:0,notes:"Dedicated institutional account.",active:true,lihcc:true});
+  S.customers.push({id:"c2",code:"CUS-0002",name:"City Heart Clinic",org:"City Heart Clinic",phone:"",email:"",address:"",opening:0,active:true,lihcc:false,terms:"Net 30"});
+  S.customers.push({id:"c3",code:"CUS-0003",name:"Regional Medical Center",org:"Regional Medical Center",phone:"",opening:0,active:true,lihcc:false,terms:"Net 15"});
+  S.vendors.push({id:"v1",code:"VEN-0001",name:"MediSupply International",company:"MediSupply International",phone:"",opening:0,active:true,terms:"Cash / Credit"});
+  S.vendors.push({id:"v2",code:"VEN-0002",name:"CardioTech Distributors",company:"CardioTech Distributors",phone:"",opening:0,active:true,terms:"Cash"});
+
+  const admin={id:"u1",username:"admin",perms:defaultPerms("Super Administrator")};
+  session=admin;
+  function buy(date,vendorId,items,paid,method){
+    const built=items.map(it=>{
+      const line=round2(it.qty*it.price);
+      return {...it,lineTotal:line,discount:0,tax:0};
+    });
+    const total=round2(built.reduce((s,i)=>s+i.lineTotal,0));
+    const rec={id:uid("PU"),number:nextNo("purchase","PUR"),vendorId,date,entered:new Date().toISOString(),method,paid,total,subtotal:total,status:"POSTED",items:built,notes:"",ref:""};
+    S.purchases.push(rec);
+    built.forEach(it=>createLot({productId:it.productId,sourceType:"PURCHASE",sourceId:rec.id,date,qty:it.qty,unitCost:it.price,batch:it.batch}));
+    const lines=[{code:AC.INV,debit:total}];
+    if(paid>0) lines.push({code:AC.CASH,credit:paid});
+    if(total-paid>0) lines.push({code:AC.AP,credit:round2(total-paid),party:"VENDOR",partyId:vendorId});
+    postJournal(date,"Purchase "+rec.number,"PURCHASE",rec.id,lines);
+    return rec;
+  }
+  function sell(date,customerId,items,paid){
+    const built=[];
+    items.forEach(it=>{
+      const layers=allocate(it.productId,it.qty,"ON_HAND");
+      const cost=round2(layers.reduce((s,l)=>s+l.amount,0));
+      const line=round2(it.qty*it.price);
+      built.push({...it,lineTotal:line,cost,profit:round2(line-cost),layers,discount:0,tax:0,sellingPrice:it.price,qty:it.qty});
+    });
+    const total=round2(built.reduce((s,i)=>s+i.lineTotal,0));
+    const cost=round2(built.reduce((s,i)=>s+i.cost,0));
+    const rec={id:uid("SA"),number:nextNo("sale","INV"),customerId,date,entered:new Date().toISOString(),method:paid>=total?"cash":"credit",paid,total,subtotal:total,totalCost:cost,profit:round2(total-cost),status:"POSTED",payStatus:paid>=total?"PAID":paid>0?"PARTIAL":"UNPAID",items:built,token:uid("TK"),notes:"",ref:""};
+    S.sales.push(rec);
+    built.forEach(it=>consume(it.layers,it.productId,date,"SALE",rec.id));
+    const lines=[];
+    if(paid>0) lines.push({code:AC.CASH,debit:paid});
+    if(total-paid>0) lines.push({code:AC.AR,debit:round2(total-paid),party:"CUSTOMER",partyId:customerId});
+    lines.push({code:AC.SALES,credit:total});
+    if(cost>0){lines.push({code:AC.COGS,debit:cost});lines.push({code:AC.INV,credit:cost});}
+    postJournal(date,"Sale "+rec.number,"SALE",rec.id,lines);
+    return rec;
+  }
+  buy(iso(2023,3,15),"v1",[{productId:stent.id,qty:10,price:40000,batch:"ST-2023-A"},{productId:balloon.id,qty:20,price:10000,batch:"BL-2023-A"}],600000,"cash");
+  buy(iso(2024,6,10),"v1",[{productId:stent.id,qty:8,price:45000,batch:"ST-2024-B"},{productId:wire.id,qty:30,price:4000,batch:"WR-2024-A"}],480000,"cash");
+  buy(iso(2025,2,8),"v2",[{productId:stent.id,qty:6,price:52000,batch:"ST-2025-C"},{productId:balloon.id,qty:15,price:12000,batch:"BL-2025-B"},{productId:sheath.id,qty:40,price:900,batch:"SH-2025"}],0,"credit");
+  sell(iso(2023,4,20),"c1",[{productId:stent.id,qty:2,price:48000}],96000);
+  sell(iso(2024,8,12),"c1",[{productId:stent.id,qty:3,price:55000},{productId:balloon.id,qty:4,price:14000}],100000);
+  sell(iso(2025,11,3),"c2",[{productId:balloon.id,qty:2,price:16000},{productId:wire.id,qty:5,price:6500}],0);
+
+  const layers=allocate(stent.id,10,"ON_HAND");
+  const conCost=round2(layers.reduce((s,l)=>s+l.amount,0)/10);
+  const con={id:uid("CO"),number:nextNo("consignment","CON"),customerId:"c1",date:iso(2025,6,1),entered:new Date().toISOString(),status:"PARTIALLY_SETTLED",notes:"Stents placed at Cath Lab on consignment.",
+    items:[{id:uid("CI"),productId:stent.id,qtySupplied:10,qtyUsed:6,qtyReturned:2,qtyBilled:0,costPrice:conCost,expected:62000,batch:layers[0].batch,status:"PARTIALLY_SETTLED"}]};
+  S.consignments.push(con);
+  consume(layers,stent.id,iso(2025,6,1),"CONSIGNMENT_OUT",con.id,"CONSIGNED");
+  const cv=round2(layers.reduce((s,l)=>s+l.amount,0));
+  postJournal(iso(2025,6,1),"Consignment "+con.number,"CONSIGNMENT",con.id,[{code:AC.INV_C,debit:cv},{code:AC.INV,credit:cv}]);
+  const ret=allocate(stent.id,2,"CONSIGNED");
+  consume(ret,stent.id,iso(2025,7,15),"CONSIGNMENT_RETURN",con.id,"ON_HAND");
+  postJournal(iso(2025,7,15),"Consignment return "+con.number,"CONSIGNMENT_RETURN",con.id,[{code:AC.INV,debit:round2(2*conCost)},{code:AC.INV_C,credit:round2(2*conCost)}]);
+
+  S.expenses.push({id:uid("EX"),number:nextNo("expense","EXP"),date:iso(2025,12,5),entered:new Date().toISOString(),payee:"Courier",category:"Freight & Logistics",amount:8500,method:"cash",notes:"Delivery of stents to LIHCC",status:"POSTED"});
+  postJournal(iso(2025,12,5),"Expense EXP-00001","EXPENSE","e1",[{code:AC.EXP,debit:8500},{code:AC.CASH,credit:8500}]);
+  audit("SEED","System","Initial historical records 2023–2025");
+  session=null;
+  save();
+}
+
+/* ========== ACTIONS ========== */
+function doLogin(user,pass){
+  const u=S.users.find(x=>x.username.toLowerCase()===user.toLowerCase() && x.password===pass && x.active!==false);
+  if(!u){toast("Invalid username or password","err");return;}
+  const role=S.roles.find(r=>r.id===u.roleId);
+  session={id:u.id,username:u.username,name:u.name,role:role?role.name:"",perms:role?role.perms:defaultPerms("Viewer")};
+  localStorage.setItem(KEY+"_SESSION",JSON.stringify(session));
+  go("dashboard"); toast("Welcome, "+u.name);
+}
+function logout(){session=null;localStorage.removeItem(KEY+"_SESSION");render();}
+function go(s,id){screen=s;pid=id||"";q="";render();window.scrollTo(0,0);}
+
+function collectItems(mode){
+  const rows=[...document.querySelectorAll(".item-row")];
+  return rows.map(r=>{
+    const productId=r.querySelector("[data-k=productId]").value;
+    const qty=+r.querySelector("[data-k=qty]").value||0;
+    const price=+r.querySelector("[data-k=price]").value||0;
+    const discount=+(r.querySelector("[data-k=disc]")||{value:0}).value||0;
+    const tax=+(r.querySelector("[data-k=tax]")||{value:0}).value||0;
+    const batch=(r.querySelector("[data-k=batch]")||{value:""}).value;
+    const serial=(r.querySelector("[data-k=serial]")||{value:""}).value;
+    const expiry=(r.querySelector("[data-k=expiry]")||{value:""}).value;
+    return {productId,qty,price,discount,tax,batch,serial,expiry};
+  }).filter(x=>x.productId && x.qty>0);
+}
+
+function savePurchase(){
+  if(!can("purchases","create")) return toast("No permission","err");
+  const vendorId=$("f-party").value, date=$("f-date").value||today(), method=$("f-method").value, paid=+$("f-paid").value||0, notes=$("f-notes").value, ref=$("f-ref").value;
+  const items=collectItems("purchase");
+  if(!vendorId) return toast("Select a vendor","err");
+  if(!items.length) return toast("Add items","err");
+  const built=items.map(it=>{
+    const taxable=round2(it.qty*it.price-it.discount);
+    const taxAmt=round2(taxable*(it.tax/100));
+    return {...it,unitPrice:it.price,taxAmt,lineTotal:round2(taxable+taxAmt)};
+  });
+  const total=round2(built.reduce((s,i)=>s+i.lineTotal,0));
+  const rec={id:uid("PU"),number:nextNo("purchase",S.company.purPrefix||"PUR"),vendorId,date,entered:new Date().toISOString(),method,paid:Math.min(paid|| (method==="credit"?0:total), total),total,subtotal:round2(built.reduce((s,i)=>s+i.qty*i.price,0)),status:"POSTED",items:built,notes,ref};
+  try{
+    built.forEach(it=>createLot({productId:it.productId,sourceType:"PURCHASE",sourceId:rec.id,date,qty:it.qty,unitCost:round2(it.lineTotal/it.qty),batch:it.batch}));
+    const lines=[{code:AC.INV,debit:rec.total}];
+    if(rec.paid>0) lines.push({code:method==="cash"?AC.CASH:AC.BANK,credit:rec.paid});
+    if(rec.total-rec.paid>0) lines.push({code:AC.AP,credit:round2(rec.total-rec.paid),party:"VENDOR",partyId:vendorId});
+    postJournal(date,"Purchase "+rec.number,"PURCHASE",rec.id,lines);
+    S.purchases.unshift(rec);
+    audit("CREATE","Purchase",rec.number);
+    save(); toast("Purchase "+rec.number+" posted"); go("purchase",rec.id);
+  }catch(e){toast(e.message,"err");}
+}
+
+function saveSale(){
+  if(!can("sales","create")) return toast("No permission","err");
+  const customerId=$("f-party").value, date=$("f-date").value||today(), method=$("f-method").value, paid=+$("f-paid").value||0, notes=$("f-notes").value, ref=$("f-ref").value;
+  const items=collectItems("sale");
+  if(!customerId) return toast("Select a customer","err");
+  if(!items.length) return toast("Add items","err");
+  try{
+    const built=items.map(it=>{
+      const layers=allocate(it.productId,it.qty,"ON_HAND");
+      const cost=round2(layers.reduce((s,l)=>s+l.amount,0));
+      const taxable=round2(it.qty*it.price-it.discount);
+      const taxAmt=round2(taxable*(it.tax/100));
+      const line=round2(taxable+taxAmt);
+      return {...it,sellingPrice:it.price,taxAmt,lineTotal:line,cost,profit:round2(taxable-cost),layers};
+    });
+    const total=round2(built.reduce((s,i)=>s+i.lineTotal,0));
+    const cost=round2(built.reduce((s,i)=>s+i.cost,0));
+    const pay=Math.min(paid||(method==="credit"?0:total),total);
+    const rec={id:uid("SA"),number:nextNo("sale",S.company.invPrefix||"INV"),customerId,date,entered:new Date().toISOString(),method,paid:pay,total,subtotal:round2(built.reduce((s,i)=>s+i.qty*i.price,0)),totalCost:cost,profit:round2(built.reduce((s,i)=>s+i.profit,0)),status:"POSTED",payStatus:pay<=0?"UNPAID":pay+0.01>=total?"PAID":"PARTIAL",items:built,token:uid("TK"),notes,ref,sent:false,viewed:false};
+    built.forEach(it=>consume(it.layers,it.productId,date,"SALE",rec.id));
+    const lines=[];
+    if(pay>0) lines.push({code:method==="cash"?AC.CASH:AC.BANK,debit:pay});
+    if(total-pay>0) lines.push({code:AC.AR,debit:round2(total-pay),party:"CUSTOMER",partyId:customerId});
+    const taxTotal=round2(built.reduce((s,i)=>s+(i.taxAmt||0),0));
+    const netSales=round2(total-taxTotal);
+    lines.push({code:AC.SALES,credit:netSales});
+    if(taxTotal>0) lines.push({code:AC.TAX,credit:taxTotal});
+    if(cost>0){lines.push({code:AC.COGS,debit:cost});lines.push({code:AC.INV,credit:cost});}
+    postJournal(date,"Sale "+rec.number,"SALE",rec.id,lines);
+    S.sales.unshift(rec);
+    audit("CREATE","Sale",rec.number,null,{total,cost,profit:rec.profit,date});
+    save(); toast("Invoice "+rec.number+" saved"); go("sale",rec.id);
+  }catch(e){toast(e.message,"err");}
+}
+
+function saveConsignment(){
+  if(!can("consignments","create")) return toast("No permission","err");
+  const customerId=$("f-party").value, date=$("f-date").value||today(), notes=$("f-notes").value;
+  const items=collectItems("consignment");
+  if(!customerId) return toast("Select a customer","err");
+  if(!items.length) return toast("Add items","err");
+  try{
+    const built=items.map(it=>{
+      const layers=allocate(it.productId,it.qty,"ON_HAND");
+      const cost=round2(layers.reduce((s,l)=>s+l.amount,0)/it.qty);
+      return {id:uid("CI"),productId:it.productId,qtySupplied:it.qty,qtyUsed:0,qtyReturned:0,qtyBilled:0,costPrice:cost,expected:it.price,batch:it.batch||layers[0].batch,status:"IN_STOCK_AT_CUSTOMER",layers};
+    });
+    const rec={id:uid("CO"),number:nextNo("consignment",S.company.conPrefix||"CON"),customerId,date,entered:new Date().toISOString(),status:"IN_STOCK_AT_CUSTOMER",notes,items:built};
+    let val=0;
+    built.forEach(it=>{val+=it.layers.reduce((s,l)=>s+l.amount,0); consume(it.layers,it.productId,date,"CONSIGNMENT_OUT",rec.id,"CONSIGNED"); delete it.layers;});
+    if(val>0) postJournal(date,"Consignment "+rec.number,"CONSIGNMENT",rec.id,[{code:AC.INV_C,debit:round2(val)},{code:AC.INV,credit:round2(val)}]);
+    S.consignments.unshift(rec); audit("CREATE","Consignment",rec.number); save(); toast(rec.number+" supplied"); go("consignment",rec.id);
+  }catch(e){toast(e.message,"err");}
+}
+
+function updateConsigItem(cid,iid){
+  const c=S.consignments.find(x=>x.id===cid); const it=c.items.find(x=>x.id===iid);
+  const used=+$("u-"+iid).value||0, ret=+$("r-"+iid).value||0;
+  if(used+ret>it.qtySupplied+1e-6) return toast("Used + returned cannot exceed supplied","err");
+  const extraR=round2(ret-it.qtyReturned);
+  try{
+    if(extraR>0){
+      const layers=allocate(it.productId,extraR,"CONSIGNED");
+      consume(layers,it.productId,today(),"CONSIGNMENT_RETURN",c.id,"ON_HAND");
+      postJournal(today(),"Return "+c.number,"CONSIGNMENT_RETURN",c.id,[{code:AC.INV,debit:round2(extraR*it.costPrice)},{code:AC.INV_C,credit:round2(extraR*it.costPrice)}]);
+    }
+    it.qtyUsed=used; it.qtyReturned=ret;
+    const rem=it.qtySupplied-used-ret;
+    it.status=rem<=0 && ret>=it.qtySupplied?"RETURNED":(used||ret)?"PARTIALLY_SETTLED":"IN_STOCK_AT_CUSTOMER";
+    c.status=c.items.every(i=>i.status==="SETTLED"||i.status==="RETURNED")?"SETTLED":"PARTIALLY_SETTLED";
+    audit("EDIT","Consignment",c.number,{used:it.qtyUsed,ret:it.qtyReturned},{used,ret});
+    save(); toast("Updated"); go("consignment",cid);
+  }catch(e){toast(e.message,"err");}
+}
+
+function billConsignment(cid){
+  const c=S.consignments.find(x=>x.id===cid);
+  const date=$("bill-date").value||today();
+  try{
+    const items=[];
+    c.items.forEach(it=>{
+      const q=round2(it.qtyUsed-it.qtyBilled); if(q<=0) return;
+      const p=S.products.find(x=>x.id===it.productId);
+      items.push({productId:it.productId,qty:q,price:it.expected||p.sellingPrice,discount:0,tax:p.tax||0});
+      it.qtyBilled=round2(it.qtyBilled+q);
+    });
+    if(!items.length) return toast("Nothing billable — mark used first","err");
+    const built=items.map(it=>{
+      const layers=allocate(it.productId,it.qty,"CONSIGNED");
+      const cost=round2(layers.reduce((s,l)=>s+l.amount,0));
+      const line=round2(it.qty*it.price);
+      return {...it,sellingPrice:it.price,lineTotal:line,cost,profit:round2(line-cost),layers,taxAmt:0};
+    });
+    const total=round2(built.reduce((s,i)=>s+i.lineTotal,0));
+    const cost=round2(built.reduce((s,i)=>s+i.cost,0));
+    const rec={id:uid("SA"),number:nextNo("sale",S.company.invPrefix||"INV"),customerId:c.customerId,date,entered:new Date().toISOString(),method:"credit",paid:0,total,subtotal:total,totalCost:cost,profit:round2(total-cost),status:"POSTED",payStatus:"UNPAID",items:built,token:uid("TK"),notes:"Billed from "+c.number,ref:c.number,consignmentId:c.id};
+    built.forEach(it=>consume(it.layers,it.productId,date,"SALE",rec.id));
+    postJournal(date,"Sale "+rec.number+" from "+c.number,"SALE",rec.id,[
+      {code:AC.AR,debit:total,party:"CUSTOMER",partyId:c.customerId},{code:AC.SALES,credit:total},
+      {code:AC.COGS,debit:cost},{code:AC.INV_C,credit:cost}
+    ]);
+    S.sales.unshift(rec);
+    c.status="PARTIALLY_SETTLED";
+    audit("BILL","Consignment",c.number,null,rec.number);
+    save(); toast("Invoice "+rec.number); go("sale",rec.id);
+  }catch(e){toast(e.message,"err");}
+}
+
+function savePayment(){
+  if(!can("payments","create")) return toast("No permission","err");
+  const dir=$("f-dir").value, ptype=$("f-ptype").value, amount=+$("f-amt").value||0, date=$("f-date").value||today(), method=$("f-method").value, notes=$("f-notes").value, ref=$("f-ref").value;
+  const customerId=$("f-cust").value||"", vendorId=$("f-vend").value||"";
+  if(amount<=0) return toast("Enter amount","err");
+  if(ptype==="CUSTOMER"&&!customerId) return toast("Select customer","err");
+  if(ptype==="VENDOR"&&!vendorId) return toast("Select vendor","err");
+  let left=amount; const allocs=[];
+  if(dir==="IN"&&customerId){
+    S.sales.filter(s=>s.customerId===customerId && s.status==="POSTED" && s.payStatus!=="PAID").sort((a,b)=>a.date.localeCompare(b.date)).forEach(s=>{
+      if(left<=0) return; const due=round2(s.total-s.paid); const a=Math.min(due,left); if(a<=0)return;
+      s.paid=round2(s.paid+a); s.payStatus=s.paid+0.01>=s.total?"PAID":"PARTIAL"; allocs.push({saleId:s.id,amount:a}); left=round2(left-a);
+    });
+  }
+  if(dir==="OUT"&&vendorId){
+    S.purchases.filter(p=>p.vendorId===vendorId && p.status==="POSTED").sort((a,b)=>a.date.localeCompare(b.date)).forEach(p=>{
+      if(left<=0) return; const due=round2(p.total-p.paid); if(due<=0)return; const a=Math.min(due,left);
+      p.paid=round2(p.paid+a); allocs.push({purchaseId:p.id,amount:a}); left=round2(left-a);
+    });
+  }
+  const rec={id:uid("PY"),number:nextNo("payment","PAY"),dir,ptype,customerId,vendorId,date,entered:new Date().toISOString(),method,amount,unallocated:left,notes,ref,status:"POSTED",allocs};
+  const cash=method==="cash"?AC.CASH:AC.BANK;
+  const lines=dir==="IN"?[{code:cash,debit:amount},{code:AC.AR,credit:amount,party:"CUSTOMER",partyId:customerId}]:[{code:AC.AP,debit:amount,party:"VENDOR",partyId:vendorId},{code:cash,credit:amount}];
+  postJournal(date,"Payment "+rec.number,"PAYMENT",rec.id,lines);
+  S.payments.unshift(rec); audit("CREATE","Payment",rec.number); save(); toast("Payment saved"); go("payments");
+}
+
+function saveExpense(){
+  if(!can("expenses","create")) return toast("No permission","err");
+  const amount=+$("f-amt").value||0; if(amount<=0) return toast("Enter amount","err");
+  const rec={id:uid("EX"),number:nextNo("expense","EXP"),date:$("f-date").value||today(),entered:new Date().toISOString(),payee:$("f-payee").value,category:$("f-cat").value,amount,method:$("f-method").value,notes:$("f-notes").value,status:"POSTED"};
+  postJournal(rec.date,"Expense "+rec.number,"EXPENSE",rec.id,[{code:AC.EXP,debit:amount},{code:rec.method==="cash"?AC.CASH:AC.BANK,credit:amount}]);
+  S.expenses.unshift(rec); audit("CREATE","Expense",rec.number); save(); toast("Expense posted"); go("expenses");
+}
+
+function saveParty(kind){
+  const name=$("f-name").value.trim(); if(!name) return toast("Name required","err");
+  const opening=+$("f-open").value||0;
+  if(kind==="customer"){
+    const rec={id:pid||uid("CU"),code:$("f-code").value||nextNo("customer","CUS"),name,org:$("f-org").value,phone:$("f-phone").value,whatsapp:$("f-wa").value,email:$("f-email").value,address:$("f-addr").value,ntn:$("f-ntn").value,terms:$("f-terms").value,opening,notes:$("f-notes").value,active:true,lihcc:!!$("f-lihcc")?.checked};
+    if(pid){const i=S.customers.findIndex(x=>x.id===pid);S.customers[i]={...S.customers[i],...rec};audit("EDIT","Customer",name);}
+    else {S.customers.push(rec); if(opening) postJournal($("f-date").value||today(),"Opening "+name,"OPENING",rec.id,opening>0?[{code:AC.AR,debit:opening,party:"CUSTOMER",partyId:rec.id},{code:AC.EQ,credit:opening}]:[{code:AC.EQ,debit:Math.abs(opening)},{code:AC.AR,credit:Math.abs(opening),party:"CUSTOMER",partyId:rec.id}]); audit("CREATE","Customer",name);}
+    save(); toast("Saved"); go("customers");
+  } else {
+    const rec={id:pid||uid("VE"),code:$("f-code").value||nextNo("vendor","VEN"),name,company:$("f-org").value,phone:$("f-phone").value,whatsapp:$("f-wa").value,email:$("f-email").value,address:$("f-addr").value,ntn:$("f-ntn").value,bank:$("f-bank").value,terms:$("f-terms").value,opening,notes:$("f-notes").value,active:true};
+    if(pid){const i=S.vendors.findIndex(x=>x.id===pid);S.vendors[i]={...S.vendors[i],...rec};audit("EDIT","Vendor",name);}
+    else {S.vendors.push(rec); if(opening) postJournal($("f-date").value||today(),"Opening "+name,"OPENING",rec.id,[{code:AC.EQ,debit:opening},{code:AC.AP,credit:opening,party:"VENDOR",partyId:rec.id}]); audit("CREATE","Vendor",name);}
+    save(); toast("Saved"); go("vendors");
+  }
+}
+
+function saveProduct(){
+  if(!can("products","edit")) return toast("No permission","err");
+  const name=$("f-name").value.trim(); if(!name) return toast("Name required","err");
+  const rec={id:pid||uid("PR"),code:$("f-code").value||nextNo("product","ITM"),name,generic:$("f-gen").value,categoryId:$("f-cat").value,brand:$("f-brand").value,catalogue:$("f-catno").value,unit:$("f-unit").value||"Piece",minStock:+$("f-min").value||0,purchasePrice:+$("f-cost").value||0,sellingPrice:+$("f-sell").value||0,tax:+$("f-tax").value||0,notes:$("f-notes").value,active:true,lastPurchasePrice:+$("f-cost").value||0,averageCost:+$("f-ocost").value||+$("f-cost").value||0};
+  const open=+$("f-ostock").value||0, oc=+$("f-ocost").value||rec.purchasePrice;
+  if(pid){const i=S.products.findIndex(x=>x.id===pid); const prev=S.products[i]; S.products[i]={...prev,...rec,averageCost:prev.averageCost,lastPurchasePrice:prev.lastPurchasePrice}; audit("EDIT","Product",name);}
+  else {
+    S.products.push(rec);
+    if(open>0){createLot({productId:rec.id,sourceType:"OPENING",sourceId:rec.id,date:$("f-odate").value||today(),qty:open,unitCost:oc}); postJournal($("f-odate").value||today(),"Opening stock "+name,"OPENING",rec.id,[{code:AC.INV,debit:round2(open*oc)},{code:AC.EQ,credit:round2(open*oc)}]);}
+    audit("CREATE","Product",name);
+  }
+  save(); toast("Product saved"); go("products");
+}
+
+function adjustStock(id){
+  const qty=+$("adj-qty").value||0, cost=+$("adj-cost").value||0, reason=$("adj-reason").value, date=$("adj-date").value||today(), notes=$("adj-notes").value;
+  if(!qty) return toast("Enter qty","err");
+  try{
+    if(qty>0) createLot({productId:id,sourceType:"ADJUSTMENT",sourceId:"ADJ",date,qty,unitCost:cost,notes:reason});
+    else {const layers=allocate(id,Math.abs(qty),"ON_HAND"); consume(layers,id,date,reason==="DAMAGED"||reason==="EXPIRED"?reason:"ADJUSTMENT","ADJ");}
+    audit("ADJUST","Stock",id,null,{qty,reason}); save(); toast("Adjustment posted"); go("product",id);
+  }catch(e){toast(e.message,"err");}
+}
+
+function voidSale(id){
+  if(!can("sales","void")) return toast("No permission","err");
+  const s=S.sales.find(x=>x.id===id); if(!s||s.status==="VOIDED") return;
+  s.items.forEach(it=>restore(it.layers||[],it.productId,today(),"SALE_VOID",s.id));
+  s.status="VOIDED";
+  S.journals.filter(j=>j.sourceId===id && !j.voided).forEach(j=>{
+    j.voided=true;
+    postJournal(today(),"Void "+j.number,"SALE",id,j.lines.map(l=>({code:l.code,debit:l.credit,credit:l.debit})));
+  });
+  audit("VOID","Sale",s.number); save(); toast("Invoice voided"); go("sale",id);
+}
+function voidPurchase(id){
+  if(!can("purchases","void")) return toast("No permission","err");
+  const p=S.purchases.find(x=>x.id===id); if(!p||p.status==="VOIDED") return;
+  const lots=S.lots.filter(l=>l.sourceType==="PURCHASE"&&l.sourceId===id);
+  if(lots.some(l=>l.qtyRemaining+0.0001<l.qtyReceived)) return toast("Cannot void — stock already sold/consigned. Use a return.","err");
+  lots.forEach(l=>{l.qtyRemaining=0; S.movements.unshift({id:uid("MV"),productId:l.productId,type:"PURCHASE_RETURN",qty:-l.qtyReceived,unitCost:l.unitCost,date:today(),entered:new Date().toISOString(),ref:id,notes:"Void "+p.number});});
+  p.status="VOIDED";
+  S.journals.filter(j=>j.sourceId===id && !j.voided).forEach(j=>{j.voided=true; postJournal(today(),"Void "+j.number,"PURCHASE",id,j.lines.map(l=>({code:l.code,debit:l.credit,credit:l.debit})));});
+  audit("VOID","Purchase",p.number); save(); toast("Purchase voided"); go("purchase",id);
+}
+
+function saveCompany(){
+  if(!can("settings","edit")) return toast("No permission","err");
+  ["name","address","phone","whatsapp","email","ntn","bankName","bankTitle","bankNo","iban","footer","terms","authName","authTitle","costing","invPrefix","purPrefix"].forEach(k=>{if($( "c-"+k)) S.company[k==="name"?"name":k]=$("c-"+k).value;});
+  S.company.name=$("c-name").value; S.company.address=$("c-address").value; S.company.phone=$("c-phone").value;
+  S.company.whatsapp=$("c-whatsapp").value; S.company.email=$("c-email").value; S.company.ntn=$("c-ntn").value;
+  S.company.bankName=$("c-bankName").value; S.company.bankTitle=$("c-bankTitle").value; S.company.bankNo=$("c-bankNo").value; S.company.iban=$("c-iban").value;
+  S.company.footer=$("c-footer").value; S.company.terms=$("c-terms").value; S.company.authName=$("c-authName").value; S.company.authTitle=$("c-authTitle").value;
+  S.company.costing=$("c-costing").value; S.company.template=$("c-template").value;
+  audit("EDIT","Company",S.company.name); save(); toast("Company saved"); go("settings");
+}
+function saveUser(){
+  if(!can("users","admin")) return toast("No permission","err");
+  const username=$("u-user").value.trim(), name=$("u-name").value.trim(), password=$("u-pass").value, roleId=$("u-role").value;
+  if(!username||!name||!password) return toast("Username, name and password required","err");
+  if(S.users.some(u=>u.username.toLowerCase()===username.toLowerCase())) return toast("Username exists","err");
+  S.users.push({id:uid("US"),username,name,password,roleId,active:true});
+  audit("CREATE","User",username); save(); toast("User added"); go("users");
+}
+
+function exportCsv(type){
+  let headers, rows;
+  if(type==="sales"){headers=["Date","Entered","Invoice","Customer","Total","Cost","Profit","Paid","Status"];rows=S.sales.filter(s=>s.status==="POSTED").map(s=>{const c=S.customers.find(x=>x.id===s.customerId);return [fmt(s.date),fmt(s.entered),s.number,c?c.name:"",s.total,s.totalCost,s.profit,s.paid,s.payStatus];});}
+  else if(type==="purchases"){headers=["Date","Bill","Vendor","Total","Paid"];rows=S.purchases.filter(p=>p.status==="POSTED").map(p=>{const v=S.vendors.find(x=>x.id===p.vendorId);return [fmt(p.date),p.number,v?v.name:"",p.total,p.paid];});}
+  else {headers=["Code","Name","OnHand","Consigned","AvgCost","LastPurchase","Selling"];rows=S.products.map(p=>{const st=stock(p.id);return [p.code,p.name,st.onHand,st.consigned,p.averageCost,p.lastPurchasePrice,p.sellingPrice];});}
+  const csv=[headers.join(","),...rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","))].join("\n");
+  download(csv,"lihcc-"+type+".csv","text/csv");
+}
+function backup(){download(JSON.stringify({exported:new Date().toISOString(),data:S},null,2),"lihcc-backup-"+today()+".json","application/json"); toast("Backup downloaded");}
+function restoreFile(inp){
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{try{const p=JSON.parse(e.target.result); if(!confirm("Replace ALL data in this browser?"))return; S=p.data||p; save(); toast("Restored"); go("dashboard");}catch(err){toast("Invalid file","err");}};
+  r.readAsText(f);
+}
+function download(text,name,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();}
+function importCsv(type,text){
+  const lines=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) return toast("Empty CSV","err");
+  const headers=lines[0].split(",").map(h=>h.trim().toLowerCase().replace(/\s+/g,"_").replace(/"/g,""));
+  let ok=0, errors=[];
+  lines.slice(1).forEach((line,i)=>{
+    const cols=line.split(",").map(c=>c.replace(/^"|"$/g,"").trim());
+    const row={}; headers.forEach((h,ix)=>row[h]=cols[ix]||"");
+    try{
+      if(type==="products"){S.products.push({id:uid("PR"),code:row.code||nextNo("product","ITM"),name:row.name||row.product_name,generic:row.generic||"",brand:row.brand||"",catalogue:row.catalogue||"",purchasePrice:+row.purchase_price||+row.cost||0,sellingPrice:+row.selling_price||+row.price||0,minStock:+row.min_stock||0,averageCost:+row.opening_cost||0,lastPurchasePrice:+row.purchase_price||0,active:true,unit:"Piece",tax:0}); ok++;}
+      else if(type==="vendors"){S.vendors.push({id:uid("VE"),code:row.code||nextNo("vendor","VEN"),name:row.name||row.vendor_name,company:row.company||"",phone:row.phone||"",opening:+row.opening_balance||0,active:true}); ok++;}
+      else if(type==="customers"){S.customers.push({id:uid("CU"),code:row.code||nextNo("customer","CUS"),name:row.name||row.customer_name,org:row.organization||"",phone:row.phone||"",opening:+row.opening_balance||0,active:true,lihcc:false}); ok++;}
+      else errors.push("Row "+(i+2)+": unknown type");
+    }catch(e){errors.push("Row "+(i+2)+": "+e.message);}
+  });
+  save(); toast("Imported "+ok+" rows"+(errors.length?" ("+errors.length+" errors)":""));
+}
+
+function readFileAsData(input,cb){const f=input.files[0]; if(!f)return; if(f.size>1500000){toast("Keep under 1.5MB","err");return;} const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(f);}
+
+/* ========== UI ========== */
+function rangeFilter(period){
+  const now=new Date(); const start=new Date(now); start.setHours(0,0,0,0);
+  if(period==="today") return {from:start.toISOString(),to:now.toISOString()};
+  if(period==="week"){const d=new Date(start); d.setDate(d.getDate()-7); return {from:d.toISOString(),to:now.toISOString()};}
+  if(period==="month") return {from:new Date(now.getFullYear(),now.getMonth(),1).toISOString(),to:now.toISOString()};
+  if(period==="year") return {from:new Date(now.getFullYear(),0,1).toISOString(),to:now.toISOString()};
+  return null;
+}
+function inRange(date,r){if(!r)return true; const t=new Date(date).getTime(); return t>=new Date(r.from).getTime() && t<=new Date(r.to).getTime();}
+
+function stats(period){
+  const r=rangeFilter(period);
+  const sales=S.sales.filter(s=>s.status==="POSTED"&&inRange(s.date,r));
+  const purch=S.purchases.filter(p=>p.status==="POSTED"&&inRange(p.date,r));
+  const exp=S.expenses.filter(e=>e.status==="POSTED"&&inRange(e.date,r));
+  const totalSales=round2(sales.reduce((s,x)=>s+x.total,0));
+  const totalCost=round2(sales.reduce((s,x)=>s+x.totalCost,0));
+  const gp=round2(sales.reduce((s,x)=>s+x.profit,0));
+  const te=round2(exp.reduce((s,x)=>s+x.amount,0));
+  return {
+    totalSales,totalPurchases:round2(purch.reduce((s,x)=>s+x.total,0)),totalCost,gp,te,np:round2(gp-te),
+    ar:round2(S.customers.reduce((s,c)=>s+Math.max(0,custOut(c.id)),0)),
+    ap:round2(S.vendors.reduce((s,v)=>s+Math.max(0,vendOut(v.id)),0)),
+    inv:round2(S.products.reduce((s,p)=>s+stock(p.id).value,0)),
+    consQty:round2(S.consignments.reduce((s,c)=>s+c.items.reduce((a,i)=>a+Math.max(0,i.qtySupplied-i.qtyUsed-i.qtyReturned),0),0)),
+    cash:accBal(AC.CASH), bank:accBal(AC.BANK),
+    pending:S.sales.filter(s=>s.status==="POSTED"&&s.payStatus!=="PAID").slice(0,8),
+    low:S.products.map(p=>({p,...stock(p.id)})).filter(x=>x.onHand<=x.p.minStock),
+    recent:S.audit.slice(0,10),
+    sales, purch
+  };
+}
+
+function shell(html){
+  const nav=MODULES.filter(m=>can(m,"view")).map(m=>`<button class="navbtn ${screen===m||(screen.startsWith(m.slice(0,-1))&&m!=="dashboard")?"on":""}" onclick="go('${m}')">${LABELS[m]}</button>`).join("");
+  return `<div class="app">
+    <aside class="sidebar no-print">
+      <div class="brand"><div class="k">Official records</div><h1>${esc(S.company.name)}</h1></div>
+      <nav class="nav">${nav}</nav>
+      <div class="side-foot">${esc(session.name)}<div class="muted">${esc(session.role)}</div>
+        <button class="btn btn-x" style="width:100%;margin-top:8px" onclick="logout()">Sign out</button></div>
+    </aside>
+    <div class="main">
+      <div class="mobile-nav no-print">${MODULES.filter(m=>can(m,"view")).map(m=>`<button class="btn btn-x" style="margin-right:6px" onclick="go('${m}')">${LABELS[m]}</button>`).join("")}</div>
+      <header class="top no-print">
+        <input class="search" placeholder="Search invoices, products, customers, vendors, batch…" value="${esc(q)}" onkeydown="if(event.key==='Enter'){q=this.value;go('search')}">
+        <div style="margin-left:auto;text-align:right"><div style="font-weight:700;font-size:13px">${esc(session.name)}</div><div class="muted">${esc(session.role)}</div></div>
+      </header>
+      <div class="content">${html}</div>
+    </div>
+  </div>`;
+}
+
+function renderLogin(){
+  return `<div class="login">
+    <div class="hero">
+      <div><div class="k" style="letter-spacing:.2em;font-size:12px;opacity:.8">LIHCC ENTERPRISES</div>
+        <h1 style="font-size:36px;margin:18px 0 12px;max-width:420px">Inventory, Sales & Accounting</h1>
+        <p style="opacity:.9;max-width:420px;line-height:1.5">Purchases, stock, consignments to Luqman Cardiac Center, invoicing, ledgers and profit — with historical costs preserved. This HTML file stores data in this browser. Use Backup in Settings to keep a copy.</p></div>
+      <ul style="line-height:1.9;opacity:.9;font-size:14px"><li>✓ FIFO / weighted-average costing</li><li>✓ Consignment vs billed stock</li><li>✓ Backdated historical entry + audit trail</li><li>✓ Multi-user roles</li></ul>
+    </div>
+    <div class="box"><form class="card" onsubmit="event.preventDefault();doLogin(this.user.value,this.pass.value)">
+      <div style="text-align:center;margin-bottom:18px">
+        <div style="width:56px;height:56px;border-radius:16px;background:#1d4ed8;color:#fff;display:grid;place-items:center;margin:0 auto 10px;font-weight:800">LE</div>
+        <h2>${esc(S.company.name)}</h2><p class="muted">Sign in to continue</p>
+      </div>
+      <label class="label">Username</label><input class="input" name="user" value="admin" autocomplete="username">
+      <label class="label" style="margin-top:10px">Password</label><input class="input" name="pass" type="password" autocomplete="current-password">
+      <button class="btn btn-p" style="width:100%;margin-top:16px">Sign in</button>
+      <p class="muted" style="text-align:center;margin-top:14px">Default administrator: <b>admin / Admin@123</b></p>
+    </form></div>
+  </div>`;
+}
+
+function pageHead(title,sub,btn,fn){
+  return `<div class="row"><div><h2 class="page">${title}</h2><div class="sub">${sub||""}</div></div>${btn?`<button class="btn btn-p" onclick="${fn}">${btn}</button>`:""}</div>`;
+}
+
+function renderDashboard(){
+  const period=window._period||"all";
+  const s=stats(period);
+  const months={};
+  for(let i=11;i>=0;i--){const d=new Date(); d.setMonth(d.getMonth()-i); const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); months[k]={sales:0,purch:0,profit:0};}
+  S.sales.filter(x=>x.status==="POSTED").forEach(x=>{const k=x.date.slice(0,7); if(months[k]){months[k].sales+=x.total;months[k].profit+=x.profit;}});
+  S.purchases.filter(x=>x.status==="POSTED").forEach(x=>{const k=x.date.slice(0,7); if(months[k]) months[k].purch+=x.total;});
+  const max=Math.max(1,...Object.values(months).map(m=>Math.max(m.sales,m.purch,Math.abs(m.profit))));
+  const bars=Object.entries(months).map(([k,m])=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+    <div style="width:100%;height:140px;display:flex;align-items:end;gap:2px">
+      <div style="flex:1;background:#10b981;border-radius:3px 3px 0 0;height:${(m.sales/max)*100}%"></div>
+      <div style="flex:1;background:#3b82f6;border-radius:3px 3px 0 0;height:${(m.purch/max)*100}%"></div>
+      <div style="flex:1;background:${m.profit>=0?"#fbbf24":"#ef4444"};border-radius:3px 3px 0 0;height:${(Math.abs(m.profit)/max)*100}%"></div>
+    </div><div class="muted">${k.slice(5)}</div></div>`).join("");
+  return pageHead("Dashboard",S.company.name+" — live financial position")+
+    `<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${[["all","All time"],["year","This year"],["month","This month"],["week","This week"],["today","Today"]].map(([k,l])=>`<button class="btn ${period===k?"btn-p":"btn-x"}" onclick="window._period='${k}';render()">${l}</button>`).join("")}</div>
+    <div class="grid g4">
+      <div class="card kpi"><div class="l">Total sales</div><div class="v profit">${money(s.totalSales)}</div></div>
+      <div class="card kpi"><div class="l">Total purchases</div><div class="v" style="color:#1e3a8a">${money(s.totalPurchases)}</div></div>
+      <div class="card kpi"><div class="l">Gross profit</div><div class="v ${s.gp>=0?"profit":"loss"}">${money(s.gp)}</div></div>
+      <div class="card kpi"><div class="l">Net profit</div><div class="v ${s.np>=0?"profit":"loss"}">${money(s.np)}</div></div>
+      <div class="card kpi"><div class="l">Receivables</div><div class="v" style="color:#b45309">${money(s.ar)}</div></div>
+      <div class="card kpi"><div class="l">Payables</div><div class="v loss">${money(s.ap)}</div></div>
+      <div class="card kpi"><div class="l">Inventory value</div><div class="v">${money(s.inv)}</div></div>
+      <div class="card kpi"><div class="l">Consignment qty</div><div class="v">${s.consQty}</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card kpi"><div class="l">Cash / Bank</div><div class="v" style="font-size:18px">${money(s.cash)} <span class="muted">/ ${money(s.bank)}</span></div></div>
+      <div class="card kpi"><div class="l">Low stock items</div><div class="v">${s.low.length}</div></div>
+    </div>
+    <div class="card" style="padding:16px;margin-top:12px"><div style="font-weight:800;margin-bottom:10px">Monthly sales, purchases & profit</div><div style="display:flex;align-items:end;gap:6px">${bars}</div>
+      <div class="muted" style="margin-top:8px"><span style="color:#10b981">■</span> Sales &nbsp; <span style="color:#3b82f6">■</span> Purchases &nbsp; <span style="color:#fbbf24">■</span> Profit</div></div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card"><div style="padding:12px 16px;font-weight:800;border-bottom:1px solid var(--line)">Pending invoices</div>
+        <table>${s.pending.map(inv=>`<tr><td><a href="#" onclick="go('sale','${inv.id}');return false">${esc(inv.number)}</a></td><td>${esc((S.customers.find(c=>c.id===inv.customerId)||{}).name)}</td><td>${money(inv.total-inv.paid)}</td></tr>`).join("")||"<tr><td class='empty'>None</td></tr>"}</table></div>
+      <div class="card"><div style="padding:12px 16px;font-weight:800;border-bottom:1px solid var(--line)">Recent activity</div>
+        <table>${s.recent.map(a=>`<tr><td>${fmt(a.at)}</td><td>${esc(a.user)}</td><td>${esc(a.action)} ${esc(a.type)} ${esc(a.label)}</td></tr>`).join("")}</table></div>
+    </div>`;
+}
+
+function renderProducts(){
+  const list=S.products.filter(p=>!q||(p.name+p.code+p.brand+p.catalogue).toLowerCase().includes(q.toLowerCase()));
+  return pageHead("Products / Inventory","Medical item master, stock and valuation","+ New item","go('product-new')")+
+    `<input class="input" style="max-width:360px;margin-bottom:12px" placeholder="Search…" oninput="q=this.value;render()">
+    <div class="card table-wrap"><table><thead><tr><th>Code</th><th>Item</th><th>On hand</th><th>Consigned</th><th>Avg cost</th><th>Last purchase</th><th>Selling</th><th>Value</th></tr></thead><tbody>
+    ${list.map(p=>{const st=stock(p.id);return `<tr><td class="muted">${esc(p.code)}</td><td><a href="#" onclick="go('product','${p.id}');return false"><b>${esc(p.name)}</b></a><div class="muted">${esc(p.brand)} ${esc(p.catalogue)}</div></td>
+      <td style="${st.onHand<=p.minStock?"color:#dc2626;font-weight:800":""}">${st.onHand}</td><td>${st.consigned}</td><td>${money(p.averageCost)}</td><td>${money(p.lastPurchasePrice)}</td><td>${money(p.sellingPrice)}</td><td>${money(st.value)}</td></tr>`;}).join("")}
+    </tbody></table></div>`;
+}
+function productForm(p){
+  p=p||{};
+  const cats=S.categories.map(c=>`<option value="${c.id}" ${p.categoryId===c.id?"selected":""}>${esc(c.name)}</option>`).join("");
+  return pageHead(p.id?"Edit product":"New product","Catalogue prices do not replace historical lot costs")+
+    `<div class="card" style="padding:18px"><div class="grid g2">
+      <div><label class="label">Name *</label><input class="input" id="f-name" value="${esc(p.name||"")}"></div>
+      <div><label class="label">Code</label><input class="input" id="f-code" value="${esc(p.code||"")}"></div>
+      <div><label class="label">Generic</label><input class="input" id="f-gen" value="${esc(p.generic||"")}"></div>
+      <div><label class="label">Category</label><select class="input" id="f-cat">${cats}</select></div>
+      <div><label class="label">Brand</label><input class="input" id="f-brand" value="${esc(p.brand||"")}"></div>
+      <div><label class="label">Catalogue no.</label><input class="input" id="f-catno" value="${esc(p.catalogue||"")}"></div>
+      <div><label class="label">Unit</label><input class="input" id="f-unit" value="${esc(p.unit||"Piece")}"></div>
+      <div><label class="label">Min stock</label><input class="input" id="f-min" type="number" value="${p.minStock||0}"></div>
+      <div><label class="label">Default purchase price</label><input class="input" id="f-cost" type="number" value="${p.purchasePrice||""}"></div>
+      <div><label class="label">Selling price</label><input class="input" id="f-sell" type="number" value="${p.sellingPrice||""}"></div>
+      ${p.id?"":`<div><label class="label">Opening stock</label><input class="input" id="f-ostock" type="number" value="0"></div>
+      <div><label class="label">Opening unit cost</label><input class="input" id="f-ocost" type="number" value="0"></div>
+      <div><label class="label">Opening date</label><input class="input" id="f-odate" type="date"></div>`}
+      <div><label class="label">Tax %</label><input class="input" id="f-tax" type="number" value="${p.tax||0}"></div>
+    </div><label class="label" style="margin-top:10px">Notes</label><textarea class="input" id="f-notes">${esc(p.notes||"")}</textarea>
+    <button class="btn btn-p" style="margin-top:12px" onclick="saveProduct()">Save product</button></div>`;
+}
+function renderProduct(){
+  const p=S.products.find(x=>x.id===pid); if(!p) return productForm();
+  const st=stock(p.id);
+  const lots=S.lots.filter(l=>l.productId===p.id);
+  const mov=S.movements.filter(m=>m.productId===p.id).slice(0,80);
+  return pageHead(p.name,p.code+" · historical lots are never overwritten")+
+    `<div class="grid g4"><div class="card kpi"><div class="l">On hand</div><div class="v">${st.onHand}</div></div>
+      <div class="card kpi"><div class="l">Consigned</div><div class="v">${st.consigned}</div></div>
+      <div class="card kpi"><div class="l">Average cost</div><div class="v" style="font-size:18px">${money(p.averageCost)}</div></div>
+      <div class="card kpi"><div class="l">Last purchase</div><div class="v" style="font-size:18px">${money(p.lastPurchasePrice)}</div></div></div>
+    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Historical cost lots</div>
+      <table><thead><tr><th>Received</th><th>Source</th><th>Batch</th><th>Location</th><th>Received</th><th>Remaining</th><th>Unit cost</th></tr></thead><tbody>
+      ${lots.map(l=>`<tr><td>${fmt(l.received)}</td><td>${esc(l.sourceType)}</td><td>${esc(l.batch)||"—"}</td><td>${esc(l.location)}</td><td>${l.qtyReceived}</td><td><b>${l.qtyRemaining}</b></td><td>${money(l.unitCost)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Stock movements (txn date vs entered)</div>
+      <table><thead><tr><th>Txn date</th><th>Entered</th><th>Type</th><th>Qty</th><th>Unit cost</th></tr></thead><tbody>
+      ${mov.map(m=>`<tr><td>${fmt(m.date)}</td><td>${fmt(m.entered)}</td><td>${esc(m.type)}</td><td class="${m.qty<0?"loss":"profit"}">${m.qty>0?"+":""}${m.qty}</td><td>${money(m.unitCost)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="card no-print" style="padding:16px;margin-top:12px"><b>Stock adjustment</b>
+      <div class="grid g2" style="margin-top:8px">
+        <div><label class="label">Qty +/−</label><input class="input" id="adj-qty" type="number"></div>
+        <div><label class="label">Unit cost if adding</label><input class="input" id="adj-cost" type="number" value="${p.averageCost}"></div>
+        <div><label class="label">Reason</label><select class="input" id="adj-reason"><option>CORRECTION</option><option>DAMAGED</option><option>EXPIRED</option></select></div>
+        <div><label class="label">Date</label><input class="input" id="adj-date" type="date" value="${today()}"></div>
+      </div><input class="input" id="adj-notes" placeholder="Notes" style="margin:8px 0">
+      <button class="btn btn-p" onclick="adjustStock('${p.id}')">Post adjustment</button>
+    </div>${productForm(p)}`;
+}
+
+function addItemRow(mode){
+  const box=$("items"); const i=document.createElement("div"); i.className="item-row";
+  const opts=`<option value="">Select item…</option>`+S.products.filter(p=>p.active!==false).map(p=>`<option value="${p.id}" data-buy="${p.purchasePrice}" data-sell="${p.sellingPrice}" data-tax="${p.tax||0}">${esc(p.code)} — ${esc(p.name)}</option>`).join("");
+  i.innerHTML=`<div class="grid" style="grid-template-columns:2fr 90px 120px 90px 80px 36px;gap:6px">
+    <select class="input" data-k="productId" onchange="onProd(this,'${mode}')">${opts}</select>
+    <input class="input" data-k="qty" type="number" value="1" min="0" step="0.01" oninput="calcTot()">
+    <input class="input" data-k="price" type="number" step="0.01" placeholder="Price" oninput="calcTot()">
+    ${mode==="consignment"?`<input class="input" data-k="batch" placeholder="Batch"><span></span>`:`<input class="input" data-k="disc" type="number" value="0" placeholder="Disc" oninput="calcTot()"><input class="input" data-k="tax" type="number" value="0" placeholder="Tax%" oninput="calcTot()">`}
+    <button class="btn btn-x" onclick="this.closest('.item-row').remove();calcTot()">✕</button>
+  </div>${mode==="purchase"?`<div class="grid g2" style="margin-top:6px"><input class="input" data-k="batch" placeholder="Batch / lot"><input class="input" data-k="expiry" type="date"></div>`:mode==="consignment"?"":`<input class="input" data-k="batch" placeholder="Batch (optional)" style="margin-top:6px">`}`;
+  box.appendChild(i); calcTot();
+}
+function onProd(sel,mode){
+  const o=sel.selectedOptions[0]; if(!o||!o.value)return;
+  const row=sel.closest(".item-row");
+  row.querySelector("[data-k=price]").value=mode==="purchase"?o.dataset.buy:o.dataset.sell;
+  const t=row.querySelector("[data-k=tax]"); if(t) t.value=o.dataset.tax||0;
+  calcTot();
+}
+function calcTot(){
+  let sub=0,disc=0,tax=0;
+  document.querySelectorAll(".item-row").forEach(r=>{
+    const q=+r.querySelector("[data-k=qty]").value||0, p=+r.querySelector("[data-k=price]").value||0;
+    const d=+(r.querySelector("[data-k=disc]")||{value:0}).value||0, t=+(r.querySelector("[data-k=tax]")||{value:0}).value||0;
+    sub+=q*p; disc+=d; tax+=(q*p-d)*(t/100);
+  });
+  const el=$("totbox"); if(el) el.innerHTML=`<div class="muted">Subtotal ${money(sub)} · Discount ${money(disc)} · Tax ${money(tax)}</div><div style="font-size:20px;font-weight:800">Total ${money(sub-disc+tax)}</div>`;
+}
+
+function renderPurchases(){
+  return pageHead("Purchases","Vendor bills increase stock, cost and payables","+ New purchase","go('purchase-new')")+
+    `<div class="card table-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Entered</th><th>Vendor</th><th>Total</th><th>Paid</th><th>Status</th></tr></thead><tbody>
+    ${S.purchases.map(p=>{const v=S.vendors.find(x=>x.id===p.vendorId);return `<tr><td><a href="#" onclick="go('purchase','${p.id}');return false"><b>${esc(p.number)}</b></a></td><td>${fmt(p.date)}</td><td>${fmt(p.entered)}</td><td>${esc(v?v.name:"")}</td><td>${money(p.total)}</td><td>${money(p.paid)}</td><td><span class="badge ${p.status==="VOIDED"?"b-r":"b-g"}">${esc(p.status)}</span></td></tr>`;}).join("")}</tbody></table></div>`;
+}
+function txForm(kind){
+  const isSale=kind==="sale", isCon=kind==="consignment";
+  const parties=isSale||isCon?S.customers:S.vendors;
+  const title=isCon?"Supply on consignment":isSale?"New sales invoice":"New purchase";
+  const sub=isCon?"Moves stock to the customer without a sale until used.":isSale?"Cost is taken from actual purchase lots (FIFO), not the current catalogue price.":"Transaction date can be historical. Each line’s unit price is stored permanently.";
+  return pageHead(title,sub)+
+    `<div class="card" style="padding:16px"><div class="grid g2">
+      <div><label class="label">${isSale||isCon?"Customer":"Vendor"} *</label><select class="input" id="f-party"><option value="">Select…</option>${parties.filter(p=>p.active!==false).map(p=>`<option value="${p.id}">${esc(p.name)}${p.lihcc?" (Luqman Cardiac Center)":""}</option>`).join("")}</select></div>
+      <div><label class="label">Transaction date</label><input class="input" id="f-date" type="date" value="${today()}"></div>
+      ${isCon?"":`<div><label class="label">Payment method</label><select class="input" id="f-method"><option value="credit">Credit</option><option value="cash">Cash</option><option value="bank">Bank</option><option value="cheque">Cheque</option></select></div>
+      <div><label class="label">Paid now</label><input class="input" id="f-paid" type="number" value="0"></div>
+      <div><label class="label">Reference</label><input class="input" id="f-ref"></div>`}
+      <div style="grid-column:1/-1"><label class="label">Notes</label><textarea class="input" id="f-notes"></textarea></div>
+    </div></div>
+    <div id="items"></div>
+    <button class="btn btn-x" style="width:100%;border:2px dashed var(--line);margin:8px 0" onclick="addItemRow('${kind}')">+ Add item</button>
+    <div class="card" style="padding:12px;margin-bottom:10px" id="totbox"></div>
+    <button class="btn ${isSale?"btn-g":"btn-p"}" onclick="${isCon?"saveConsignment()":isSale?"saveSale()":"savePurchase()"}">${isCon?"Record consignment":isSale?"Save & generate invoice":"Post purchase"}</button>`;
+}
+function renderPurchase(){
+  const p=S.purchases.find(x=>x.id===pid); if(!p) return "Not found";
+  const v=S.vendors.find(x=>x.id===p.vendorId);
+  return pageHead(p.number,v?v.name:"")+
+    `<div class="grid g4"><div class="card kpi"><div class="l">Transaction date</div><div class="v" style="font-size:18px">${fmt(p.date)}</div></div>
+      <div class="card kpi"><div class="l">Entered</div><div class="v" style="font-size:18px">${fmt(p.entered)}</div></div>
+      <div class="card kpi"><div class="l">Total</div><div class="v" style="font-size:18px">${money(p.total)}</div></div>
+      <div class="card kpi"><div class="l">Outstanding</div><div class="v" style="font-size:18px">${money(p.total-p.paid)}</div></div></div>
+    <div class="card" style="margin-top:12px"><table><thead><tr><th>Item</th><th>Qty</th><th>Unit cost (preserved)</th><th>Line</th><th>Batch</th></tr></thead><tbody>
+    ${p.items.map(i=>{const pr=S.products.find(x=>x.id===i.productId);return `<tr><td>${esc(pr?pr.name:i.productId)}</td><td>${i.qty}</td><td><b>${money(i.unitPrice||i.price)}</b></td><td>${money(i.lineTotal)}</td><td>${esc(i.batch)||"—"}</td></tr>`;}).join("")}</tbody></table></div>
+    <p class="muted" style="margin:10px 0">${esc(p.notes||"")}</p>
+    ${p.status==="POSTED"&&can("purchases","void")?`<button class="btn btn-d no-print" onclick="if(confirm('Void this purchase?'))voidPurchase('${p.id}')">Void purchase</button>`:`<span class="badge b-r">${esc(p.status)}</span>`}`;
+}
+
+function renderSales(){
+  return pageHead("Sales / Invoices","Revenue, actual cost and gross profit per invoice","+ New invoice","go('sale-new')")+
+    `<div class="card table-wrap"><table><thead><tr><th>Invoice</th><th>Date</th><th>Entered</th><th>Customer</th><th>Revenue</th><th>Cost</th><th>Profit / Loss</th><th>Payment</th></tr></thead><tbody>
+    ${S.sales.map(s=>{const c=S.customers.find(x=>x.id===s.customerId);return `<tr><td><a href="#" onclick="go('sale','${s.id}');return false"><b>${esc(s.number)}</b></a></td><td>${fmt(s.date)}</td><td>${fmt(s.entered)}</td><td>${esc(c?c.name:"")}${c&&c.lihcc?" <span class='badge b-b'>LIHCC</span>":""}</td><td>${money(s.total)}</td><td>${money(s.totalCost)}</td><td class="${s.profit>=0?"profit":"loss"}">${money(s.profit)}</td><td><span class="badge ${s.payStatus==="PAID"?"b-g":s.payStatus==="PARTIAL"?"b-a":"b-r"}">${esc(s.payStatus)}</span></td></tr>`;}).join("")}</tbody></table></div>`;
+}
+function invoiceHTML(s){
+  const c=S.customers.find(x=>x.id===s.customerId)||{}; const co=S.company;
+  const rows=s.items.map((it,i)=>{const p=S.products.find(x=>x.id===it.productId)||{};return `<tr><td>${i+1}</td><td><b>${esc(p.name||"")}</b><div class="muted">${esc(p.catalogue||"")} ${esc(p.brand||"")}</div></td><td>${it.qty}</td><td>${money(it.sellingPrice||it.price)}</td><td>${money(it.discount||0)}</td><td><b>${money(it.lineTotal)}</b></td></tr>`;}).join("");
+  const bg=co.template==="modern"?"#0f172a":co.template==="compact"?"#065f46":"#1e3a8a";
+  return `<div class="card bill">
+    <div class="bill-h" style="background:${bg}">
+      <div>${co.logo?`<img src="${co.logo}" style="height:40px;background:#fff;border-radius:6px;padding:3px;margin-bottom:6px">`:""}<div style="font-size:22px;font-weight:800">${esc(co.name)}</div>
+        <div style="opacity:.9;font-size:13px;white-space:pre-line">${esc(co.address)}</div><div style="font-size:13px">${esc(co.phone)} ${esc(co.email)}</div>${co.ntn?`<div style="font-size:12px">NTN ${esc(co.ntn)}</div>`:""}</div>
+      <div style="text-align:right"><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.8">Tax Invoice</div>
+        <div style="font-size:22px;font-weight:800">${esc(s.number)}</div><div>Date ${fmt(s.date)}</div><div style="font-size:12px;opacity:.85">Entered ${fmt(s.entered)}</div><div style="margin-top:6px;font-size:12px;font-weight:800">${esc(s.payStatus)}</div></div>
+    </div>
+    <div style="padding:18px 24px" class="grid g2"><div><div class="muted">BILL TO</div><div style="font-weight:800;font-size:18px">${esc(c.name)}</div><div>${esc(c.org||"")}</div><div>${esc(c.address||"")}</div></div>
+      <div style="text-align:right">Reference: ${esc(s.ref||"—")}${co.bankName?`<div style="margin-top:8px"><div class="muted">BANK DETAILS</div>${esc(co.bankName)}<br>${esc(co.bankTitle)}<br>${esc(co.bankNo)}<br>${esc(co.iban)}</div>`:""}</div></div>
+    <table><thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit price</th><th>Discount</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="padding:16px 24px;display:flex;justify-content:flex-end"><div style="width:260px;font-size:13px">
+      <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span>${money(s.subtotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;border-top:1px solid var(--line);padding-top:6px;margin-top:6px"><span>Total</span><span>${money(s.total)}</span></div>
+      <div style="display:flex;justify-content:space-between"><span>Paid</span><span>${money(s.paid)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-weight:800"><span>Balance</span><span>${money(s.total-s.paid)}</span></div>
+    </div></div>
+    <div style="padding:0 24px 24px" class="grid g2"><div><div style="font-weight:800">Terms & conditions</div><div class="muted" style="white-space:pre-line">${esc(co.terms)}</div><div style="margin-top:8px">${esc(co.footer)}</div></div>
+      <div style="text-align:right">${co.stamp?`<img src="${co.stamp}" style="height:56px">`:""}${co.sign?`<br><img src="${co.sign}" style="height:40px">`:""}<div style="font-weight:800">${esc(co.authName)}</div><div class="muted">${esc(co.authTitle)}</div></div></div>
+  </div>`;
+}
+function renderSale(){
+  const s=S.sales.find(x=>x.id===pid); if(!s) return "Not found";
+  const c=S.customers.find(x=>x.id===s.customerId);
+  const share=location.href.split("#")[0]+"#invoice="+s.token;
+  const wa=`https://wa.me/?text=${encodeURIComponent("Invoice "+s.number+" "+share)}`;
+  return pageHead(s.number,c?c.name:"")+
+    `<div class="grid g4 no-print"><div class="card kpi"><div class="l">Revenue</div><div class="v" style="font-size:18px">${money(s.total)}</div></div>
+      <div class="card kpi"><div class="l">Actual cost</div><div class="v" style="font-size:18px">${money(s.totalCost)}</div></div>
+      <div class="card kpi"><div class="l">${s.profit>=0?"Gross profit":"Gross loss"}</div><div class="v ${s.profit>=0?"profit":"loss"}" style="font-size:18px">${money(s.profit)}</div></div>
+      <div class="card kpi"><div class="l">Outstanding</div><div class="v" style="font-size:18px">${money(s.total-s.paid)}</div></div></div>
+    <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+      <button class="btn btn-p" onclick="window.print()">Print / PDF</button>
+      <a class="btn btn-g" href="${wa}" target="_blank">WhatsApp</a>
+      <a class="btn btn-x" href="mailto:${esc((c&&c.email)||"")}?subject=${encodeURIComponent(s.number)}&body=${encodeURIComponent(share)}">Email</a>
+      <button class="btn btn-x" onclick="navigator.clipboard.writeText('${share}');toast('Link copied')">Copy share link</button>
+      ${s.status==="POSTED"&&can("sales","void")?`<button class="btn btn-d" onclick="if(confirm('Void this invoice? Stock will be restored.'))voidSale('${s.id}')">Void invoice</button>`:`<span class="badge b-r">${esc(s.status)}</span>`}
+    </div>
+    <div class="card no-print" style="margin-bottom:12px"><div style="padding:12px 16px;font-weight:800">Cost layers used (FIFO / configured method)</div>
+      <table><thead><tr><th>Item</th><th>Qty</th><th>Sell</th><th>Actual cost</th><th>Profit</th><th>Lots</th></tr></thead><tbody>
+      ${s.items.map(i=>{const p=S.products.find(x=>x.id===i.productId);return `<tr><td>${esc(p?p.name:"")}</td><td>${i.qty}</td><td>${money(i.sellingPrice||i.price)}</td><td>${money(i.cost)}</td><td class="${i.profit>=0?"profit":"loss"}">${money(i.profit)}</td><td class="muted">${(i.layers||[]).map(l=>l.qty+" @ "+money(l.unitCost)+(l.batch?" ("+l.batch+")":"")).join("; ")}</td></tr>`;}).join("")}</tbody></table></div>
+    ${invoiceHTML(s)}`;
+}
+
+function renderConsignments(){
+  return pageHead("Consignments","Stock at customer sites — not billed until used","+ New consignment","go('consignment-new')")+
+    S.consignments.map(c=>{
+      const cu=S.customers.find(x=>x.id===c.customerId);
+      const supplied=c.items.reduce((s,i)=>s+i.qtySupplied,0), used=c.items.reduce((s,i)=>s+i.qtyUsed,0), ret=c.items.reduce((s,i)=>s+i.qtyReturned,0);
+      return `<a class="card" style="display:block;padding:16px;margin-bottom:10px" href="#" onclick="go('consignment','${c.id}');return false">
+        <div class="row"><div><b>${esc(c.number)} · ${esc(cu?cu.name:"")}</b><div class="muted">Txn ${fmt(c.date)} · Entered ${fmt(c.entered)}</div></div><span class="badge b-a">${esc(String(c.status||"").replace(/_/g," "))}</span></div>
+        <div class="grid g4" style="margin-top:8px;font-size:13px"><div>Consigned <b>${supplied}</b></div><div>Used <b>${used}</b></div><div>Returned <b>${ret}</b></div><div>Remaining <b>${round2(supplied-used-ret)}</b> · Billable <b>${used}</b></div></div>
+      </a>`;
+    }).join("")||`<div class="card empty">No consignments yet.</div>`;
+}
+function renderConsignment(){
+  const c=S.consignments.find(x=>x.id===pid); if(!c) return "Not found";
+  const cu=S.customers.find(x=>x.id===c.customerId);
+  const billable=c.items.some(i=>i.qtyUsed-i.qtyBilled>0);
+  return pageHead(c.number,(cu?cu.name:"")+" · billed only when used")+
+    `<p class="muted">Txn ${fmt(c.date)} · Entered ${fmt(c.entered)}</p>
+    ${billable?`<div class="card no-print" style="padding:14px;margin:10px 0;display:flex;gap:10px;align-items:end"><div><label class="label">Invoice date for used items</label><input class="input" id="bill-date" type="date" value="${today()}"></div>
+      <button class="btn btn-g" onclick="billConsignment('${c.id}')">Convert used items to invoice</button></div>`:""}
+    ${c.items.map(it=>{const p=S.products.find(x=>x.id===it.productId); const rem=round2(it.qtySupplied-it.qtyUsed-it.qtyReturned);
+      return `<div class="card" style="padding:16px;margin-bottom:10px"><b>${esc(p?p.name:"")}</b>
+        <div class="grid g4" style="margin:8px 0;font-size:13px"><div>Consigned <b>${it.qtySupplied}</b></div><div>Used <b>${it.qtyUsed}</b></div><div>Returned <b>${it.qtyReturned}</b></div><div>Remaining <b>${rem}</b> · Billable <b>${round2(it.qtyUsed-it.qtyBilled)}</b></div></div>
+        <div class="muted">Cost ${money(it.costPrice)} · Expected sell ${money(it.expected)} · Batch ${esc(it.batch)||"—"}</div>
+        <div class="grid g2 no-print" style="margin-top:8px"><div><label class="label">Used / consumed</label><input class="input" id="u-${it.id}" type="number" value="${it.qtyUsed}"></div>
+          <div><label class="label">Returned</label><input class="input" id="r-${it.id}" type="number" value="${it.qtyReturned}"></div></div>
+        <button class="btn btn-p no-print" style="margin-top:8px" onclick="updateConsigItem('${c.id}','${it.id}')">Update status</button></div>`;
+    }).join("")}`;
+}
+
+function renderCustomers(){
+  return pageHead("Customers","Hospitals, clinics and Luqman Cardiac Center","+ New customer","go('customer-new')")+
+    `<div class="card table-wrap"><table><thead><tr><th>Code</th><th>Customer</th><th>Sales</th><th>Outstanding</th><th>Profit</th></tr></thead><tbody>
+    ${S.customers.map(c=>{const sales=S.sales.filter(s=>s.customerId===c.id&&s.status==="POSTED"); const tot=sales.reduce((s,x)=>s+x.total,0), pr=sales.reduce((s,x)=>s+x.profit,0);
+      return `<tr><td class="muted">${esc(c.code)}</td><td><a href="#" onclick="go('customer','${c.id}');return false"><b>${esc(c.name)}</b></a>${c.lihcc?" <span class='badge b-b'>Luqman Cardiac Center</span>":""}<div class="muted">${esc(c.org||"")}</div></td><td>${money(tot)}</td><td><b>${money(custOut(c.id))}</b></td><td class="${pr>=0?"profit":"loss"}">${money(pr)}</td></tr>`;}).join("")}</tbody></table></div>`;
+}
+function partyForm(kind,p){
+  p=p||{};
+  return pageHead(p.id?"Edit "+kind:"New "+kind)+
+    `<div class="card" style="padding:16px"><div class="grid g2">
+      <div style="grid-column:1/-1"><label class="label">Name *</label><input class="input" id="f-name" value="${esc(p.name||"")}"></div>
+      <div><label class="label">${kind==="customer"?"Organization":"Company"}</label><input class="input" id="f-org" value="${esc(p.org||p.company||"")}"></div>
+      <div><label class="label">Code</label><input class="input" id="f-code" value="${esc(p.code||"")}"></div>
+      <div><label class="label">Phone</label><input class="input" id="f-phone" value="${esc(p.phone||"")}"></div>
+      <div><label class="label">WhatsApp</label><input class="input" id="f-wa" value="${esc(p.whatsapp||"")}"></div>
+      <div><label class="label">Email</label><input class="input" id="f-email" value="${esc(p.email||"")}"></div>
+      <div><label class="label">NTN</label><input class="input" id="f-ntn" value="${esc(p.ntn||"")}"></div>
+      <div style="grid-column:1/-1"><label class="label">Address</label><textarea class="input" id="f-addr">${esc(p.address||"")}</textarea></div>
+      ${kind==="vendor"?`<div style="grid-column:1/-1"><label class="label">Bank details</label><textarea class="input" id="f-bank">${esc(p.bank||"")}</textarea></div>`:""}
+      <div><label class="label">Payment terms</label><input class="input" id="f-terms" value="${esc(p.terms||"")}"></div>
+      <div><label class="label">Opening ${kind==="customer"?"receivable":"payable"}</label><input class="input" id="f-open" type="number" value="${p.opening||0}"></div>
+      <div><label class="label">Opening as of</label><input class="input" id="f-date" type="date"></div>
+      ${kind==="customer"?`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="f-lihcc" ${p.lihcc?"checked":""}> Luqman Cardiac Center dedicated account</label>`:""}
+    </div><label class="label" style="margin-top:8px">Notes</label><textarea class="input" id="f-notes">${esc(p.notes||"")}</textarea>
+    <button class="btn btn-p" style="margin-top:12px" onclick="saveParty('${kind}')">Save ${kind}</button></div>`;
+}
+function renderCustomer(){
+  const c=S.customers.find(x=>x.id===pid); if(!c) return partyForm("customer");
+  const sales=S.sales.filter(s=>s.customerId===c.id);
+  const cons=S.consignments.filter(x=>x.customerId===c.id);
+  const profit=sales.filter(s=>s.status==="POSTED").reduce((s,x)=>s+x.profit,0);
+  const ledger=S.journals.filter(j=>!j.voided).flatMap(j=>j.lines.filter(l=>l.code===AC.AR&&l.partyId===c.id).map(l=>({...l,date:j.date,memo:j.memo})));
+  let run=c.opening||0;
+  return pageHead(c.name,(c.org||c.code)+(c.lihcc?" · Dedicated Luqman Cardiac Center account":""))+
+    `<div class="grid g4"><div class="card kpi"><div class="l">Outstanding</div><div class="v" style="font-size:18px">${money(custOut(c.id))}</div></div>
+      <div class="card kpi"><div class="l">Sales</div><div class="v" style="font-size:18px">${money(sales.filter(s=>s.status==="POSTED").reduce((s,x)=>s+x.total,0))}</div></div>
+      <div class="card kpi"><div class="l">Profit from this account</div><div class="v ${profit>=0?"profit":"loss"}" style="font-size:18px">${money(profit)}</div></div>
+      <div class="card kpi"><div class="l">Consignments</div><div class="v">${cons.length}</div></div></div>
+    <div class="no-print" style="margin:12px 0;display:flex;gap:8px"><button class="btn btn-g" onclick="go('sale-new')">New invoice</button><button class="btn btn-x" onclick="go('payment-new')">Record receipt</button></div>
+    <div class="card"><div style="padding:12px 16px;font-weight:800">Invoices</div><table>${sales.map(s=>`<tr><td><a href="#" onclick="go('sale','${s.id}');return false">${esc(s.number)}</a></td><td>${fmt(s.date)}</td><td>${money(s.total)}</td><td class="${s.profit>=0?"profit":"loss"}">${money(s.profit)}</td><td>${esc(s.payStatus)}</td></tr>`).join("")}</table></div>
+    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Consignments</div><table>${cons.map(x=>`<tr><td><a href="#" onclick="go('consignment','${x.id}');return false">${esc(x.number)}</a></td><td>${fmt(x.date)}</td><td>${esc(x.status)}</td></tr>`).join("")||"<tr><td class='empty'>None</td></tr>"}</table></div>
+    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Customer ledger</div>
+      <table><thead><tr><th>Date</th><th>Memo</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>
+      ${c.opening?`<tr><td>—</td><td>Opening balance</td><td>${money(Math.max(0,c.opening))}</td><td>${money(Math.max(0,-c.opening))}</td><td>${money(run)}</td></tr>`:""}
+      ${ledger.map(l=>{run=round2(run+l.debit-l.credit);return `<tr><td>${fmt(l.date)}</td><td>${esc(l.memo)}</td><td>${money(l.debit)}</td><td>${money(l.credit)}</td><td><b>${money(run)}</b></td></tr>`;}).join("")}</tbody></table></div>`;
+}
+function renderVendors(){
+  return pageHead("Vendors / Suppliers","","+ New vendor","go('vendor-new')")+
+    `<div class="card table-wrap"><table><thead><tr><th>Code</th><th>Vendor</th><th>Purchases</th><th>Payable</th></tr></thead><tbody>
+    ${S.vendors.map(v=>{const p=S.purchases.filter(x=>x.vendorId===v.id&&x.status==="POSTED");return `<tr><td class="muted">${esc(v.code)}</td><td><a href="#" onclick="go('vendor','${v.id}');return false"><b>${esc(v.name)}</b></a></td><td>${money(p.reduce((s,x)=>s+x.total,0))}</td><td><b>${money(vendOut(v.id))}</b></td></tr>`;}).join("")}</tbody></table></div>`;
+}
+function renderVendor(){
+  const v=S.vendors.find(x=>x.id===pid); if(!v) return partyForm("vendor");
+  const ps=S.purchases.filter(x=>x.vendorId===v.id);
+  const ledger=S.journals.filter(j=>!j.voided).flatMap(j=>j.lines.filter(l=>l.code===AC.AP&&l.partyId===v.id).map(l=>({...l,date:j.date,memo:j.memo})));
+  let run=v.opening||0;
+  return pageHead(v.name,v.company||v.code)+
+    `<div class="grid g2"><div class="card kpi"><div class="l">Outstanding payable</div><div class="v" style="font-size:18px">${money(vendOut(v.id))}</div></div>
+      <div class="card kpi"><div class="l">Purchases</div><div class="v" style="font-size:18px">${money(ps.filter(p=>p.status==="POSTED").reduce((s,x)=>s+x.total,0))}</div></div></div>
+    <div class="no-print" style="margin:12px 0;display:flex;gap:8px"><button class="btn btn-p" onclick="go('purchase-new')">New purchase</button><button class="btn btn-x" onclick="go('payment-new')">Pay vendor</button></div>
+    <div class="card"><div style="padding:12px 16px;font-weight:800">Purchases</div><table>${ps.map(p=>`<tr><td><a href="#" onclick="go('purchase','${p.id}');return false">${esc(p.number)}</a></td><td>${fmt(p.date)}</td><td>${money(p.total)}</td><td>${money(p.paid)}</td></tr>`).join("")}</table></div>
+    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Vendor ledger</div><table><thead><tr><th>Date</th><th>Memo</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>
+    ${ledger.map(l=>{run=round2(run+l.credit-l.debit);return `<tr><td>${fmt(l.date)}</td><td>${esc(l.memo)}</td><td>${money(l.debit)}</td><td>${money(l.credit)}</td><td><b>${money(run)}</b></td></tr>`;}).join("")}</tbody></table></div>`;
+}
+
+function renderPayments(){
+  return pageHead("Payments","Receipts from customers and payments to vendors","+ Record payment","go('payment-new')")+
+    `<div class="card table-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Type</th><th>Party</th><th>Method</th><th>Amount</th></tr></thead><tbody>
+    ${S.payments.map(p=>{const party=p.customerId?(S.customers.find(x=>x.id===p.customerId)||{}).name:(S.vendors.find(x=>x.id===p.vendorId)||{}).name;
+      return `<tr><td><b>${esc(p.number)}</b></td><td>${fmt(p.date)}<div class="muted">Entered ${fmt(p.entered)}</div></td><td>${p.dir==="IN"?"Receipt":"Payment"}</td><td>${esc(party)}</td><td>${esc(p.method)}</td><td class="${p.dir==="IN"?"profit":"loss"}">${money(p.amount)}</td></tr>`;}).join("")}</tbody></table></div>`;
+}
+function renderPaymentNew(){
+  return pageHead("Record payment","Full, partial or advance. Unallocated amounts remain as advances.")+
+    `<div class="card" style="padding:16px;max-width:640px"><div class="grid g2">
+      <div><label class="label">Direction</label><select class="input" id="f-dir"><option value="IN">Money in (customer)</option><option value="OUT">Money out (vendor)</option></select></div>
+      <div><label class="label">Party type</label><select class="input" id="f-ptype"><option>CUSTOMER</option><option>VENDOR</option></select></div>
+      <div><label class="label">Customer</label><select class="input" id="f-cust"><option value="">—</option>${S.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select></div>
+      <div><label class="label">Vendor</label><select class="input" id="f-vend"><option value="">—</option>${S.vendors.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join("")}</select></div>
+      <div><label class="label">Amount</label><input class="input" id="f-amt" type="number"></div>
+      <div><label class="label">Date</label><input class="input" id="f-date" type="date" value="${today()}"></div>
+      <div><label class="label">Method</label><select class="input" id="f-method"><option value="cash">Cash</option><option value="bank">Bank transfer</option><option value="cheque">Cheque</option><option value="online">Online</option></select></div>
+      <div><label class="label">Reference</label><input class="input" id="f-ref"></div>
+      <div style="grid-column:1/-1"><label class="label">Notes</label><textarea class="input" id="f-notes"></textarea></div>
+    </div><button class="btn btn-p" style="margin-top:12px" onclick="savePayment()">Save payment</button></div>`;
+}
+function renderExpenses(){
+  const tot=S.expenses.filter(e=>e.status==="POSTED").reduce((s,e)=>s+e.amount,0);
+  return pageHead("Expenses","Operating costs that reduce net profit")+
+    `<div class="card kpi" style="max-width:260px;margin-bottom:12px"><div class="l">Total posted</div><div class="v">${money(tot)}</div></div>
+    <div class="card" style="padding:16px;margin-bottom:12px"><div class="grid g2">
+      <div><label class="label">Payee</label><input class="input" id="f-payee"></div>
+      <div><label class="label">Amount</label><input class="input" id="f-amt" type="number"></div>
+      <div><label class="label">Date</label><input class="input" id="f-date" type="date" value="${today()}"></div>
+      <div><label class="label">Category</label><select class="input" id="f-cat"><option>Freight & Logistics</option><option>Office & Admin</option><option>Utilities</option><option>Salaries</option><option>Bank Charges</option><option>Miscellaneous</option></select></div>
+      <div><label class="label">Method</label><select class="input" id="f-method"><option value="cash">Cash</option><option value="bank">Bank</option></select></div>
+      <div><label class="label">Notes</label><input class="input" id="f-notes"></div>
+    </div><button class="btn btn-p" style="margin-top:10px" onclick="saveExpense()">Add expense</button></div>
+    <div class="card table-wrap"><table><thead><tr><th>No.</th><th>Date</th><th>Entered</th><th>Payee</th><th>Category</th><th>Amount</th></tr></thead><tbody>
+    ${S.expenses.map(e=>`<tr><td>${esc(e.number)}</td><td>${fmt(e.date)}</td><td>${fmt(e.entered)}</td><td>${esc(e.payee)}</td><td>${esc(e.category)}</td><td>${money(e.amount)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function renderAccounting(){
+  const by={};
+  S.journals.filter(j=>!j.voided).forEach(j=>j.lines.forEach(l=>{by[l.code]=by[l.code]||{d:0,c:0}; by[l.code].d+=l.debit; by[l.code].c+=l.credit;}));
+  return pageHead("Accounting / Ledgers","Double-entry books generated from operations")+
+    `<div class="card table-wrap"><div style="padding:12px 16px;font-weight:800">Chart of accounts / trial balance</div>
+      <table><thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>
+      ${S.accounts.map(a=>{const t=by[a.code]||{d:0,c:0}; const nat=(a.type==="ASSET"||a.type==="EXPENSE")?t.d-t.c:t.c-t.d;
+        return `<tr><td class="muted">${a.code}</td><td>${esc(a.name)}</td><td>${a.type}</td><td>${money(t.d)}</td><td>${money(t.c)}</td><td><b>${money(nat)}</b></td></tr>`;}).join("")}</tbody></table></div>
+    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Recent journals</div>
+      ${S.journals.slice().reverse().slice(0,25).map(j=>`<div style="padding:10px 16px;border-top:1px solid #f1f5f9"><div style="display:flex;justify-content:space-between"><b>${esc(j.number)} · ${esc(j.memo)}</b><span class="muted">${fmt(j.date)} ${j.voided?"VOID":""}</span></div>
+        <table>${j.lines.map(l=>`<tr><td>${l.code} ${(S.accounts.find(a=>a.code===l.code)||{}).name||""}</td><td>${money(l.debit)}</td><td>${money(l.credit)}</td></tr>`).join("")}</table></div>`).join("")}</div>`;
+}
+
+function renderReports(){
+  const type=window._rtype||"sales";
+  const tabs=[["sales","Sales"],["purchases","Purchases"],["profit","Profit"],["inventory","Inventory"],["pl","P&L"],["ar","Receivables"],["ap","Payables"]];
+  let body="";
+  if(type==="sales"||type==="profit") body=`<table><thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Revenue</th><th>Cost</th><th>Profit</th></tr></thead><tbody>${S.sales.filter(s=>s.status==="POSTED").map(s=>`<tr><td>${fmt(s.date)}</td><td>${esc(s.number)}</td><td>${esc((S.customers.find(c=>c.id===s.customerId)||{}).name)}</td><td>${money(s.total)}</td><td>${money(s.totalCost)}</td><td class="${s.profit>=0?"profit":"loss"}">${money(s.profit)}</td></tr>`).join("")}</tbody></table>`;
+  if(type==="purchases") body=`<table><thead><tr><th>Date</th><th>Bill</th><th>Vendor</th><th>Total</th><th>Paid</th></tr></thead><tbody>${S.purchases.filter(p=>p.status==="POSTED").map(p=>`<tr><td>${fmt(p.date)}</td><td>${esc(p.number)}</td><td>${esc((S.vendors.find(v=>v.id===p.vendorId)||{}).name)}</td><td>${money(p.total)}</td><td>${money(p.paid)}</td></tr>`).join("")}</tbody></table>`;
+  if(type==="inventory") body=`<table><thead><tr><th>Item</th><th>On hand</th><th>Avg cost</th><th>Value</th></tr></thead><tbody>${S.products.map(p=>{const st=stock(p.id);return `<tr><td>${esc(p.name)}</td><td>${st.onHand}</td><td>${money(p.averageCost)}</td><td>${money(st.value)}</td></tr>`;}).join("")}</tbody></table>`;
+  const st=stats("all");
+  if(type==="pl") body=`<div style="max-width:420px;padding:16px"><div class="row"><span>Sales revenue</span><b>${money(st.totalSales)}</b></div><div class="row"><span>Cost of goods sold</span><b>${money(-st.totalCost)}</b></div><div class="row"><span>Gross profit</span><b class="${st.gp>=0?"profit":"loss"}">${money(st.gp)}</b></div><div class="row"><span>Operating expenses</span><b>${money(-st.te)}</b></div><div class="row" style="font-size:18px;font-weight:800;border-top:1px solid var(--line);padding-top:8px"><span>Net profit / loss</span><span class="${st.np>=0?"profit":"loss"}">${money(st.np)}</span></div></div>`;
+  if(type==="ar") body=`<div style="padding:16px;font-size:20px;font-weight:800">Total receivables ${money(st.ar)}</div><table>${S.customers.map(c=>`<tr><td>${esc(c.name)}</td><td>${money(custOut(c.id))}</td></tr>`).join("")}</table>`;
+  if(type==="ap") body=`<div style="padding:16px;font-size:20px;font-weight:800">Total payables ${money(st.ap)}</div><table>${S.vendors.map(v=>`<tr><td>${esc(v.name)}</td><td>${money(vendOut(v.id))}</td></tr>`).join("")}</table>`;
+  return pageHead("Reports","Filter, preview, print or export CSV")+
+    `<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${tabs.map(([k,l])=>`<button class="btn ${type===k?"btn-p":"btn-x"}" onclick="window._rtype='${k}';render()">${l}</button>`).join("")}
+      <button class="btn btn-p" onclick="exportCsv('${type==="profit"?"sales":type==="pl"?"sales":type}')">Export CSV</button>
+      <button class="btn btn-x" onclick="window.print()">Print / PDF</button></div>
+    <div class="card">${body}</div>`;
+}
+
+function renderUsers(){
+  return pageHead("Users & permissions","Control which modules each role can access")+
+    `<div class="grid g2"><div class="card" style="padding:16px"><b>Add login</b>
+      <label class="label" style="margin-top:8px">Username</label><input class="input" id="u-user">
+      <label class="label" style="margin-top:8px">Display name</label><input class="input" id="u-name">
+      <label class="label" style="margin-top:8px">Password</label><input class="input" id="u-pass" type="password">
+      <label class="label" style="margin-top:8px">Role</label><select class="input" id="u-role">${S.roles.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("")}</select>
+      <button class="btn btn-p" style="margin-top:10px" onclick="saveUser()">Save user</button></div>
+      <div class="card"><div style="padding:12px 16px;font-weight:800">Logins</div><table>${S.users.map(u=>`<tr><td><b>${esc(u.name)}</b><div class="muted">@${esc(u.username)}</div></td><td>${esc((S.roles.find(r=>r.id===u.roleId)||{}).name)}</td></tr>`).join("")}</table></div></div>
+    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Audit trail</div>
+      <table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Record</th></tr></thead><tbody>
+      ${S.audit.slice(0,60).map(a=>`<tr><td>${fmt(a.at)} ${new Date(a.at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</td><td>${esc(a.user)}</td><td>${esc(a.action)}</td><td>${esc(a.type)} ${esc(a.label)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function renderSettings(){
+  const c=S.company;
+  return pageHead("Settings","Company branding, costing, backup and import")+
+    `<div class="card" style="padding:16px"><div class="grid g2">
+      <div><label class="label">Company name</label><input class="input" id="c-name" value="${esc(c.name)}"></div>
+      <div><label class="label">NTN / tax</label><input class="input" id="c-ntn" value="${esc(c.ntn)}"></div>
+      <div style="grid-column:1/-1"><label class="label">Address</label><textarea class="input" id="c-address">${esc(c.address)}</textarea></div>
+      <div><label class="label">Phone</label><input class="input" id="c-phone" value="${esc(c.phone)}"></div>
+      <div><label class="label">WhatsApp</label><input class="input" id="c-whatsapp" value="${esc(c.whatsapp)}"></div>
+      <div><label class="label">Email</label><input class="input" id="c-email" value="${esc(c.email)}"></div>
+      <div><label class="label">Costing method</label><select class="input" id="c-costing"><option value="FIFO" ${c.costing==="FIFO"?"selected":""}>FIFO (recommended)</option><option value="WEIGHTED_AVERAGE" ${c.costing==="WEIGHTED_AVERAGE"?"selected":""}>Weighted average</option></select></div>
+      <div><label class="label">Invoice template</label><select class="input" id="c-template"><option value="classic">Classic blue</option><option value="modern" ${c.template==="modern"?"selected":""}>Modern dark</option><option value="compact" ${c.template==="compact"?"selected":""}>Compact green</option></select></div>
+      <div><label class="label">Bank name</label><input class="input" id="c-bankName" value="${esc(c.bankName)}"></div>
+      <div><label class="label">Account title</label><input class="input" id="c-bankTitle" value="${esc(c.bankTitle)}"></div>
+      <div><label class="label">Account number</label><input class="input" id="c-bankNo" value="${esc(c.bankNo)}"></div>
+      <div><label class="label">IBAN</label><input class="input" id="c-iban" value="${esc(c.iban)}"></div>
+      <div><label class="label">Authorized person</label><input class="input" id="c-authName" value="${esc(c.authName)}"></div>
+      <div><label class="label">Designation</label><input class="input" id="c-authTitle" value="${esc(c.authTitle)}"></div>
+      <div style="grid-column:1/-1"><label class="label">Invoice footer</label><textarea class="input" id="c-footer">${esc(c.footer)}</textarea></div>
+      <div style="grid-column:1/-1"><label class="label">Terms & conditions</label><textarea class="input" id="c-terms">${esc(c.terms)}</textarea></div>
+      <div><label class="label">Logo</label><input class="input" type="file" accept="image/*" onchange="readFileAsData(this,d=>{S.company.logo=d;save();toast('Logo saved')})"></div>
+      <div><label class="label">Signature</label><input class="input" type="file" accept="image/*" onchange="readFileAsData(this,d=>{S.company.sign=d;save();toast('Signature saved')})"></div>
+      <div><label class="label">Stamp</label><input class="input" type="file" accept="image/*" onchange="readFileAsData(this,d=>{S.company.stamp=d;save();toast('Stamp saved')})"></div>
+    </div><button class="btn btn-p" style="margin-top:12px" onclick="saveCompany()">Save company settings</button></div>
+    <div class="card" style="padding:16px;margin-top:12px"><b>Backup (keep a copy off this computer)</b>
+      <p class="muted" style="margin:8px 0">This HTML edition stores records in your browser. Download a backup regularly. Open the same file on another PC and restore the JSON to continue.</p>
+      <button class="btn btn-p" onclick="backup()">Download JSON backup</button>
+      <label class="btn btn-x" style="margin-left:8px">Restore backup<input type="file" accept=".json" style="display:none" onchange="restoreFile(this)"></label>
+    </div>
+    <div class="card" style="padding:16px;margin-top:12px"><b>CSV import</b>
+      <p class="muted" style="margin:8px 0">Headers: products (code,name,generic,category,brand,catalogue,purchase_price,selling_price,min_stock) · vendors/customers (code,name,phone,opening_balance)</p>
+      <select class="input" id="imp-type" style="max-width:200px;display:inline-block"><option>products</option><option>vendors</option><option>customers</option></select>
+      <input type="file" accept=".csv,text/csv" onchange="(function(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importCsv(document.getElementById('imp-type').value,r.result);r.readAsText(f);})(this)">
+    </div>
+    <div class="card" style="padding:16px;margin-top:12px"><b>Reset demo data</b>
+      <p class="muted" style="margin:8px 0">Reloads the sample 2023–2025 LIHCC records (stents at Rs 40,000 / 45,000 / 52,000).</p>
+      <button class="btn btn-d" onclick="if(confirm('Erase current browser data and reload demo?')){localStorage.removeItem(KEY);location.reload()}">Reset to demo</button>
+    </div>`;
+}
+
+function renderSearch(){
+  const t=(q||"").toLowerCase();
+  if(t.length<2) return pageHead("Search","Type at least 2 characters in the top box and press Enter");
+  const sales=S.sales.filter(s=>s.number.toLowerCase().includes(t)||(s.ref||"").toLowerCase().includes(t));
+  const prods=S.products.filter(p=>(p.name+p.code+p.brand+p.catalogue).toLowerCase().includes(t));
+  const cust=S.customers.filter(c=>(c.name+c.code+(c.org||"")).toLowerCase().includes(t));
+  const vend=S.vendors.filter(v=>(v.name+v.code).toLowerCase().includes(t));
+  const lots=S.lots.filter(l=>(l.batch||"").toLowerCase().includes(t));
+  const block=(title,items)=>items.length?`<div class="card" style="margin-bottom:10px"><div style="padding:12px 16px;font-weight:800">${title}</div>${items.join("")}</div>`:"";
+  return pageHead("Search","Results for “"+esc(q)+"”")+
+    block("Invoices",sales.map(s=>`<div style="padding:10px 16px;border-top:1px solid #f1f5f9"><a href="#" onclick="go('sale','${s.id}');return false">${esc(s.number)}</a> · ${money(s.total)}</div>`))+
+    block("Products",prods.map(p=>`<div style="padding:10px 16px;border-top:1px solid #f1f5f9"><a href="#" onclick="go('product','${p.id}');return false">${esc(p.code)} · ${esc(p.name)}</a></div>`))+
+    block("Customers",cust.map(c=>`<div style="padding:10px 16px;border-top:1px solid #f1f5f9"><a href="#" onclick="go('customer','${c.id}');return false">${esc(c.name)}</a></div>`))+
+    block("Vendors",vend.map(v=>`<div style="padding:10px 16px;border-top:1px solid #f1f5f9"><a href="#" onclick="go('vendor','${v.id}');return false">${esc(v.name)}</a></div>`))+
+    block("Batch / serial",lots.map(l=>{const p=S.products.find(x=>x.id===l.productId);return `<div style="padding:10px 16px;border-top:1px solid #f1f5f9"><a href="#" onclick="go('product','${l.productId}');return false">${esc(p?p.name:"")} · ${esc(l.batch)}</a></div>`;}));
+}
+
+function publicInvoice(){
+  const token=location.hash.replace("#invoice=","");
+  const s=S.sales.find(x=>x.token===token);
+  if(!s) return `<div class="box"><div class="card" style="padding:24px">Invoice not found.</div></div>`;
+  s.viewed=true; save();
+  return `<div style="max-width:900px;margin:24px auto;padding:12px"><div class="muted" style="text-align:center;margin-bottom:10px">Secure invoice from ${esc(S.company.name)} · ${s.payStatus==="PAID"?"Paid":"Payment pending"}</div>${invoiceHTML(s)}</div>`;
+}
+
+function screenHTML(){
+  if(location.hash.startsWith("#invoice=")) return publicInvoice();
+  switch(screen){
+    case "dashboard": return renderDashboard();
+    case "products": return renderProducts();
+    case "product-new": pid=""; return productForm();
+    case "product": return renderProduct();
+    case "purchases": return renderPurchases();
+    case "purchase-new": return txForm("purchase");
+    case "purchase": return renderPurchase();
+    case "sales": return renderSales();
+    case "sale-new": return txForm("sale");
+    case "sale": return renderSale();
+    case "consignments": return renderConsignments();
+    case "consignment-new": return txForm("consignment");
+    case "consignment": return renderConsignment();
+    case "customers": return renderCustomers();
+    case "customer-new": pid=""; return partyForm("customer");
+    case "customer": return renderCustomer();
+    case "vendors": return renderVendors();
+    case "vendor-new": pid=""; return partyForm("vendor");
+    case "vendor": return renderVendor();
+    case "payments": return renderPayments();
+    case "payment-new": return renderPaymentNew();
+    case "expenses": return renderExpenses();
+    case "accounting": return renderAccounting();
+    case "reports": return renderReports();
+    case "users": return renderUsers();
+    case "settings": return renderSettings();
+    case "search": return renderSearch();
+    default: return renderDashboard();
+  }
+}
+
+function render(){
+  if(location.hash.startsWith("#invoice=")){$("app").innerHTML=publicInvoice();return;}
+  if(!session){$("app").innerHTML=renderLogin();return;}
+  $("app").innerHTML=shell(screenHTML());
+  if(screen==="purchase-new"||screen==="sale-new"||screen==="consignment-new") addItemRow(screen.replace("-new",""));
+}
+
+function boot(){
+  if(!load()) seed();
+  else if(!S.accounts||!S.accounts.length) seed();
+  try{const ss=JSON.parse(localStorage.getItem(KEY+"_SESSION")||"null"); if(ss&&ss.username){const u=S.users.find(x=>x.username===ss.username); if(u) session=ss;}}catch(e){}
+  render();
+}
+window.addEventListener("hashchange",render);
+boot();
+</script>
+</body>
+</html>
