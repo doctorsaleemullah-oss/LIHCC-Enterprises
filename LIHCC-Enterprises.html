@@ -776,10 +776,10 @@ function renderProduct(){
       <div class="card kpi"><div class="l">Consigned</div><div class="v">${st.consigned}</div></div>
       <div class="card kpi"><div class="l">Average cost</div><div class="v" style="font-size:18px">${money(p.averageCost)}</div></div>
       <div class="card kpi"><div class="l">Last purchase</div><div class="v" style="font-size:18px">${money(p.lastPurchasePrice)}</div></div></div>
-    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Historical cost lots</div>
+    <div class="card table-wrap" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Historical cost lots</div>
       <table><thead><tr><th>Received</th><th>Source</th><th>Batch</th><th>Location</th><th>Received</th><th>Remaining</th><th>Unit cost</th></tr></thead><tbody>
       ${lots.map(l=>`<tr><td>${fmt(l.received)}</td><td>${esc(l.sourceType)}</td><td>${esc(l.batch)||"—"}</td><td>${esc(l.location)}</td><td>${l.qtyReceived}</td><td><b>${l.qtyRemaining}</b></td><td>${money(l.unitCost)}</td></tr>`).join("")}</tbody></table></div>
-    <div class="card" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Stock movements (txn date vs entered)</div>
+    <div class="card table-wrap" style="margin-top:12px"><div style="padding:12px 16px;font-weight:800">Stock movements (txn date vs entered)</div>
       <table><thead><tr><th>Txn date</th><th>Entered</th><th>Type</th><th>Qty</th><th>Unit cost</th></tr></thead><tbody>
       ${mov.map(m=>`<tr><td>${fmt(m.date)}</td><td>${fmt(m.entered)}</td><td>${esc(m.type)}</td><td class="${m.qty<0?"loss":"profit"}">${m.qty>0?"+":""}${m.qty}</td><td>${money(m.unitCost)}</td></tr>`).join("")}</tbody></table></div>
     <div class="card no-print" style="padding:16px;margin-top:12px"><b>Stock adjustment</b>
@@ -906,7 +906,7 @@ function renderSale(){
       <button class="btn btn-x" onclick="navigator.clipboard.writeText('${share}');toast('Link copied')">Copy share link</button>
       ${s.status==="POSTED"&&can("sales","void")?`<button class="btn btn-d" onclick="if(confirm('Void this invoice? Stock will be restored.'))voidSale('${s.id}')">Void invoice</button>`:`<span class="badge b-r">${esc(s.status)}</span>`}
     </div>
-    <div class="card no-print" style="margin-bottom:12px"><div style="padding:12px 16px;font-weight:800">Cost layers used (FIFO / configured method)</div>
+    <div class="card table-wrap no-print" style="margin-bottom:12px"><div style="padding:12px 16px;font-weight:800">Cost layers used (FIFO / configured method)</div>
       <table><thead><tr><th>Item</th><th>Qty</th><th>Sell</th><th>Actual cost</th><th>Profit</th><th>Lots</th></tr></thead><tbody>
       ${s.items.map(i=>{const p=S.products.find(x=>x.id===i.productId);return `<tr><td>${esc(p?p.name:"")}</td><td>${i.qty}</td><td>${money(i.sellingPrice||i.price)}</td><td>${money(i.cost)}</td><td class="${i.profit>=0?"profit":"loss"}">${money(i.profit)}</td><td class="muted">${(i.layers||[]).map(l=>l.qty+" @ "+money(l.unitCost)+(l.batch?" ("+l.batch+")":"")).join("; ")}</td></tr>`;}).join("")}</tbody></table></div>
     ${invoiceHTML(s)}`;
