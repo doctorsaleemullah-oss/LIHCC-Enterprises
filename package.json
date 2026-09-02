@@ -14,6 +14,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push && tsx prisma/seed.ts",
     "backup": "tsx scripts/backup.ts",
+    "pwa": "npx --yes serve pwa -p 4173",
     "test": "tsx --test src/lib/__tests__/*.test.ts"
   },
   "prisma": {

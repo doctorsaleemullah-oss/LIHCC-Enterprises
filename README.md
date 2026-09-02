@@ -8,14 +8,27 @@ Vendor registration → Purchase (historical unit cost preserved) → Inventory 
 
 It is designed for real operational use, including **backdated entry of 3–4 years of history**. Every document stores both **transaction date** and **date entered**.
 
-## Open in a browser (no install)
+## Install as an app (PWA)
 
-Download **[`LIHCC-Enterprises.html`](./LIHCC-Enterprises.html)** and open it in Chrome, Edge, or Firefox.
+The **`pwa/`** folder is an installable Progressive Web App (home screen / desktop icon, works offline after the first visit).
 
-- Data is stored in **this browser** (`localStorage`). Use **Settings → Download JSON backup** regularly.
-- Demo login: `admin` / `Admin@123`
-- Seeded history includes 2023–2025 purchases of the same stent at **Rs 40,000 / 45,000 / 52,000**. Selling two units from the 2023 lot at Rs 48,000 costs **Rs 40,000 each** (FIFO). Lots are never overwritten.
-- Luqman Cardiac Center is a dedicated customer. Consignments track used / returned / remaining / billable separately from completed sales.
+```bash
+npm run pwa
+```
+
+Open http://localhost:4173 — Chrome or Edge will offer **Install app**. On iPhone/iPad use Safari → Share → **Add to Home Screen**.
+
+You can also host the `pwa` folder on any HTTPS static host (GitHub Pages, Netlify, a USB web server). Service workers need `http://localhost` or HTTPS; opening the file directly (`file://`) still runs the app but cannot install.
+
+- Login: `admin` / `Admin@123`
+- Data stays in **this browser / this installed app**. Use **Settings → Download JSON backup**.
+- After install, the app opens without the browser chrome and keeps working offline.
+
+## Open a single HTML file (no server)
+
+Download **[`LIHCC-Enterprises.html`](./LIHCC-Enterprises.html)** and open it in Chrome, Edge, or Firefox. Same records and login as the PWA, without install or offline caching.
+
+Seeded history includes 2023–2025 purchases of the same stent at **Rs 40,000 / 45,000 / 52,000**. Selling two units from the 2023 lot at Rs 48,000 costs **Rs 40,000 each** (FIFO). Luqman Cardiac Center is a dedicated customer.
 
 ## Login (Next.js / HTML demo)
 
