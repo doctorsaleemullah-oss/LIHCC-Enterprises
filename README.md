@@ -8,7 +8,20 @@ Vendor registration → Purchase (historical unit cost preserved) → Inventory 
 
 It is designed for real operational use, including **backdated entry of 3–4 years of history**. Every document stores both **transaction date** and **date entered**.
 
-## Install as an app (PWA)
+## Open on your phone
+
+1. On the phone, open the HTTPS link in **Safari** (iPhone) or **Chrome** (Android).
+2. Sign in with `admin` / `Admin@123`.
+3. **iPhone / iPad:** tap Share → **Add to Home Screen**. Use Safari, not Chrome.
+4. **Android:** Chrome menu → **Install app** or **Add to Home screen**.
+
+After that, LIHCC opens like a normal app and keeps working offline. Records stay on that phone until you use **Settings → Download JSON backup**.
+
+GitHub Pages (after it is enabled on the repo): `https://doctorsaleemullah-oss.github.io/LIHCC-Enterprises/`
+
+To publish from this repo: **Settings → Pages → GitHub Actions**, or deploy from the `gh-pages` branch.
+
+## Install as an app on a computer (PWA)
 
 The **`pwa/`** folder is an installable Progressive Web App (home screen / desktop icon, works offline after the first visit).
 
