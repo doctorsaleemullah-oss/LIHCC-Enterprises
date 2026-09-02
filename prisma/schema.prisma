@@ -1,0 +1,662 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Identity, roles, company
+// ---------------------------------------------------------------------------
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String  @default("")
+  isSystem    Boolean @default(false)
+  permissions String  @default("{}") // JSON: module -> none|view|create|edit|void|admin
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String?
+  name          String
+  passwordHash  String
+  roleId        String
+  role          Role      @relation(fields: [roleId], references: [id])
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  auditLogs     AuditLog[]
+  sessions      Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Company {
+  id                  String  @id @default("default")
+  name                String  @default("LIHCC Enterprises")
+  legalName           String  @default("LIHCC Enterprises")
+  registrationNo      String  @default("")
+  ntn                 String  @default("")
+  taxInfo             String  @default("")
+  address             String  @default("")
+  city                String  @default("")
+  phone               String  @default("")
+  phone2              String  @default("")
+  whatsapp            String  @default("")
+  email               String  @default("")
+  website             String  @default("")
+  description         String  @default("")
+  invoiceFooter       String  @default("Thank you for your business.")
+  termsAndConditions  String  @default("Payment is due as per agreed terms. Goods remain the property of LIHCC Enterprises until fully paid.")
+  authorizedName      String  @default("")
+  authorizedTitle     String  @default("")
+  logoDataUrl         String  @default("")
+  signatureDataUrl    String  @default("")
+  stampDataUrl        String  @default("")
+  bankName            String  @default("")
+  bankAccountTitle    String  @default("")
+  bankAccountNumber   String  @default("")
+  bankIban            String  @default("")
+  bankBranch          String  @default("")
+  invoiceTemplate     String  @default("classic")
+  invoicePrefix       String  @default("INV")
+  purchasePrefix      String  @default("PUR")
+  consignmentPrefix   String  @default("CON")
+  paymentPrefix       String  @default("PAY")
+  expensePrefix       String  @default("EXP")
+  journalPrefix       String  @default("JV")
+  currency            String  @default("PKR")
+  currencySymbol      String  @default("Rs")
+  defaultTaxRate      Float   @default(0)
+  costingMethod       String  @default("FIFO") // FIFO | WEIGHTED_AVERAGE
+  fiscalYearStartMonth Int    @default(7)
+  allowBackdatedDates Boolean @default(true)
+  backupEnabled       Boolean @default(true)
+  notifyLowStock      Boolean @default(true)
+  updatedAt           DateTime @updatedAt
+}
+
+model Sequence {
+  key        String @id
+  prefix     String @default("")
+  nextNumber Int    @default(1)
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  parentId  String?
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  products  Product[]
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+}
+
+model Unit {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  products  Product[]
+}
+
+model PaymentMethod {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  kind     String  @default("cash") // cash | bank | cheque | online | credit
+  isActive Boolean @default(true)
+}
+
+model ExpenseCategory {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  expenses Expense[]
+}
+
+// ---------------------------------------------------------------------------
+// Parties
+// ---------------------------------------------------------------------------
+
+model Vendor {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  name              String
+  companyName       String   @default("")
+  contactPerson     String   @default("")
+  phone             String   @default("")
+  whatsapp          String   @default("")
+  email             String   @default("")
+  address           String   @default("")
+  ntn               String   @default("")
+  bankDetails       String   @default("")
+  paymentTerms      String   @default("")
+  openingBalance    Float    @default(0) // amount we owe them at go-live
+  notes             String   @default("")
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  purchases         Purchase[]
+  purchaseReturns   PurchaseReturn[]
+  payments          Payment[]
+}
+
+model Customer {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  name              String
+  organization      String   @default("")
+  contactPerson     String   @default("")
+  phone             String   @default("")
+  whatsapp          String   @default("")
+  email             String   @default("")
+  address           String   @default("")
+  ntn               String   @default("")
+  paymentTerms      String   @default("")
+  openingBalance    Float    @default(0) // amount they owe us at go-live
+  notes             String   @default("")
+  isActive          Boolean  @default(true)
+  isDedicatedLihcc  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  sales             Sale[]
+  saleReturns       SaleReturn[]
+  consignments      Consignment[]
+  payments          Payment[]
+}
+
+// ---------------------------------------------------------------------------
+// Products & inventory lots
+// ---------------------------------------------------------------------------
+
+model Product {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  genericName     String   @default("")
+  description     String   @default("")
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  subcategory     String   @default("")
+  brand           String   @default("")
+  modelNumber     String   @default("")
+  catalogueNumber String   @default("")
+  unitId          String?
+  unit            Unit?    @relation(fields: [unitId], references: [id])
+  minStock        Float    @default(0)
+  openingStock    Float    @default(0)
+  openingCost     Float    @default(0)
+  purchasePrice   Float    @default(0) // current default, never used as historical cost
+  lastPurchasePrice Float  @default(0)
+  averageCost     Float    @default(0)
+  sellingPrice    Float    @default(0)
+  taxRate         Float    @default(0)
+  discountRate    Float    @default(0)
+  imageDataUrl    String   @default("")
+  notes           String   @default("")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lots            InventoryLot[]
+  movements       StockMovement[]
+  purchaseItems   PurchaseItem[]
+  saleItems       SaleItem[]
+  consignmentItems ConsignmentItem[]
+  adjustments     StockAdjustment[]
+}
+
+model InventoryLot {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id])
+  sourceType     String   // OPENING | PURCHASE | ADJUSTMENT | CONSIGNMENT_RETURN | SALE_RETURN
+  sourceId       String   @default("")
+  receivedDate   DateTime
+  qtyReceived    Float
+  qtyRemaining   Float
+  unitCost       Float
+  batchNumber    String   @default("")
+  serialNumber   String   @default("")
+  expiryDate     DateTime?
+  location       String   @default("ON_HAND") // ON_HAND | CONSIGNED
+  createdAt      DateTime @default(now())
+  allocations    CostAllocation[]
+  movements      StockMovement[]
+}
+
+model StockMovement {
+  id               String   @id @default(cuid())
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id])
+  lotId            String?
+  lot              InventoryLot? @relation(fields: [lotId], references: [id])
+  type             String
+  // OPENING, PURCHASE, SALE, SALE_RETURN, PURCHASE_RETURN,
+  // CONSIGNMENT_OUT, CONSIGNMENT_RETURN, CONSIGNMENT_USED,
+  // ADJUSTMENT, DAMAGED, EXPIRED
+  qty              Float    // signed: +in / -out of on-hand
+  unitCost         Float
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  referenceType    String
+  referenceId      String
+  notes            String   @default("")
+  isVoided         Boolean  @default(false)
+}
+
+model StockAdjustment {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  qtyDelta         Float
+  unitCost         Float    @default(0)
+  reason           String   // DAMAGED | EXPIRED | CORRECTION | OPENING | OTHER
+  notes            String   @default("")
+  status           String   @default("POSTED") // POSTED | VOIDED
+}
+
+// ---------------------------------------------------------------------------
+// Purchases
+// ---------------------------------------------------------------------------
+
+model Purchase {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  vendorId         String
+  vendor           Vendor   @relation(fields: [vendorId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  paymentMethod    String   @default("credit")
+  bankAccountId    String?
+  bankAccount      BankAccount? @relation(fields: [bankAccountId], references: [id])
+  referenceNumber  String   @default("")
+  notes            String   @default("")
+  subtotal         Float    @default(0)
+  discountAmount   Float    @default(0)
+  taxAmount        Float    @default(0)
+  total            Float    @default(0)
+  paidAmount       Float    @default(0)
+  status           String   @default("POSTED") // POSTED | VOIDED
+  items            PurchaseItem[]
+  returns          PurchaseReturn[]
+  paymentAllocations PaymentAllocation[]
+  attachments      Attachment[]
+  journalEntries   JournalEntry[]
+}
+
+model PurchaseItem {
+  id            String   @id @default(cuid())
+  purchaseId    String
+  purchase      Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  quantity      Float
+  unitPrice     Float    // historically preserved
+  discount      Float    @default(0)
+  taxRate       Float    @default(0)
+  taxAmount     Float    @default(0)
+  lineTotal     Float
+  batchNumber   String   @default("")
+  serialNumber  String   @default("")
+  expiryDate    DateTime?
+  notes         String   @default("")
+}
+
+model PurchaseReturn {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  purchaseId       String?
+  purchase         Purchase? @relation(fields: [purchaseId], references: [id])
+  vendorId         String
+  vendor           Vendor   @relation(fields: [vendorId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  notes            String   @default("")
+  total            Float    @default(0)
+  status           String   @default("POSTED")
+  items            PurchaseReturnItem[]
+}
+
+model PurchaseReturnItem {
+  id                String         @id @default(cuid())
+  purchaseReturnId  String
+  purchaseReturn    PurchaseReturn @relation(fields: [purchaseReturnId], references: [id], onDelete: Cascade)
+  productId         String
+  quantity          Float
+  unitCost          Float
+  lineTotal         Float
+}
+
+// ---------------------------------------------------------------------------
+// Sales
+// ---------------------------------------------------------------------------
+
+model Sale {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  customerId       String
+  customer         Customer @relation(fields: [customerId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  paymentMethod    String   @default("credit")
+  bankAccountId    String?
+  bankAccount      BankAccount? @relation(fields: [bankAccountId], references: [id])
+  referenceNumber  String   @default("")
+  notes            String   @default("")
+  subtotal         Float    @default(0)
+  discountAmount   Float    @default(0)
+  taxAmount        Float    @default(0)
+  total            Float    @default(0)
+  totalCost        Float    @default(0)
+  grossProfit      Float    @default(0)
+  paidAmount       Float    @default(0)
+  paymentStatus    String   @default("UNPAID") // UNPAID | PARTIAL | PAID | OVERPAID
+  status           String   @default("POSTED")
+  shareToken       String   @unique
+  sentAt           DateTime?
+  viewedAt         DateTime?
+  paidAt           DateTime?
+  consignmentId    String?
+  consignment      Consignment? @relation(fields: [consignmentId], references: [id])
+  items            SaleItem[]
+  returns          SaleReturn[]
+  paymentAllocations PaymentAllocation[]
+  attachments      Attachment[]
+  journalEntries   JournalEntry[]
+}
+
+model SaleItem {
+  id            String   @id @default(cuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  quantity      Float
+  sellingPrice  Float
+  discount      Float    @default(0)
+  taxRate       Float    @default(0)
+  taxAmount     Float    @default(0)
+  lineTotal     Float
+  costAmount    Float    @default(0) // actual allocated lot cost
+  profitAmount  Float    @default(0)
+  batchNumber   String   @default("")
+  serialNumber  String   @default("")
+  notes         String   @default("")
+  allocations   CostAllocation[]
+}
+
+model CostAllocation {
+  id         String       @id @default(cuid())
+  saleItemId String
+  saleItem   SaleItem     @relation(fields: [saleItemId], references: [id], onDelete: Cascade)
+  lotId      String
+  lot        InventoryLot @relation(fields: [lotId], references: [id])
+  quantity   Float
+  unitCost   Float
+  amount     Float
+}
+
+model SaleReturn {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  saleId           String?
+  sale             Sale?    @relation(fields: [saleId], references: [id])
+  customerId       String
+  customer         Customer @relation(fields: [customerId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  notes            String   @default("")
+  total            Float    @default(0)
+  costAmount       Float    @default(0)
+  status           String   @default("POSTED")
+  items            SaleReturnItem[]
+}
+
+model SaleReturnItem {
+  id            String     @id @default(cuid())
+  saleReturnId  String
+  saleReturn    SaleReturn @relation(fields: [saleReturnId], references: [id], onDelete: Cascade)
+  productId     String
+  quantity      Float
+  sellingPrice  Float
+  unitCost      Float
+  lineTotal     Float
+}
+
+// ---------------------------------------------------------------------------
+// Consignments
+// ---------------------------------------------------------------------------
+
+model Consignment {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  customerId       String
+  customer         Customer @relation(fields: [customerId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  notes            String   @default("")
+  status           String   @default("SUPPLIED")
+  // SUPPLIED | IN_STOCK_AT_CUSTOMER | PARTIALLY_SETTLED | SETTLED | VOIDED
+  items            ConsignmentItem[]
+  sales            Sale[]
+  attachments      Attachment[]
+}
+
+model ConsignmentItem {
+  id                   String      @id @default(cuid())
+  consignmentId        String
+  consignment          Consignment @relation(fields: [consignmentId], references: [id], onDelete: Cascade)
+  productId            String
+  product              Product     @relation(fields: [productId], references: [id])
+  qtySupplied          Float
+  qtyUsed              Float       @default(0)
+  qtyReturned          Float       @default(0)
+  qtyBilled            Float       @default(0)
+  costPrice            Float
+  expectedSellingPrice Float       @default(0)
+  batchNumber          String      @default("")
+  serialNumber         String      @default("")
+  status               String      @default("SUPPLIED")
+  // SUPPLIED | IN_STOCK_AT_CUSTOMER | USED | RETURNED | SOLD_BILLED | SETTLED | PARTIALLY_SETTLED
+  notes                String      @default("")
+}
+
+// ---------------------------------------------------------------------------
+// Payments & expenses
+// ---------------------------------------------------------------------------
+
+model BankAccount {
+  id             String   @id @default(cuid())
+  name           String
+  bankName       String   @default("")
+  accountTitle   String   @default("")
+  accountNumber  String   @default("")
+  iban           String   @default("")
+  branch         String   @default("")
+  openingBalance Float    @default(0)
+  isCash         Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  glAccountId    String?
+  payments       Payment[]
+  purchases      Purchase[]
+  sales          Sale[]
+  expenses       Expense[]
+}
+
+model Payment {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  direction        String   // IN (receipt) | OUT (disbursement)
+  partyType        String   // CUSTOMER | VENDOR | OTHER
+  customerId       String?
+  customer         Customer? @relation(fields: [customerId], references: [id])
+  vendorId         String?
+  vendor           Vendor?   @relation(fields: [vendorId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  method           String   @default("cash")
+  bankAccountId    String?
+  bankAccount      BankAccount? @relation(fields: [bankAccountId], references: [id])
+  referenceNumber  String   @default("")
+  amount           Float
+  unallocated      Float
+  notes            String   @default("")
+  status           String   @default("POSTED")
+  allocations      PaymentAllocation[]
+  attachments      Attachment[]
+  journalEntries   JournalEntry[]
+}
+
+model PaymentAllocation {
+  id         String   @id @default(cuid())
+  paymentId  String
+  payment    Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  saleId     String?
+  sale       Sale?    @relation(fields: [saleId], references: [id])
+  purchaseId String?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+  amount     Float
+}
+
+model Expense {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  categoryId       String?
+  category         ExpenseCategory? @relation(fields: [categoryId], references: [id])
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  payee            String   @default("")
+  method           String   @default("cash")
+  bankAccountId    String?
+  bankAccount      BankAccount? @relation(fields: [bankAccountId], references: [id])
+  amount           Float
+  notes            String   @default("")
+  status           String   @default("POSTED")
+  attachments      Attachment[]
+  journalEntries   JournalEntry[]
+}
+
+// ---------------------------------------------------------------------------
+// Accounting
+// ---------------------------------------------------------------------------
+
+model GlAccount {
+  id        String  @id @default(cuid())
+  code      String  @unique
+  name      String
+  type      String  // ASSET | LIABILITY | EQUITY | REVENUE | EXPENSE
+  isSystem  Boolean @default(true)
+  isActive  Boolean @default(true)
+  lines     JournalLine[]
+}
+
+model JournalEntry {
+  id               String   @id @default(cuid())
+  number           String   @unique
+  transactionDate  DateTime
+  enteredAt        DateTime @default(now())
+  createdById      String
+  sourceType       String
+  sourceId         String   @default("")
+  memo             String   @default("")
+  isVoided         Boolean  @default(false)
+  voidOfId         String?
+  saleId           String?
+  sale             Sale?     @relation(fields: [saleId], references: [id])
+  purchaseId       String?
+  purchase         Purchase? @relation(fields: [purchaseId], references: [id])
+  paymentId        String?
+  payment          Payment?  @relation(fields: [paymentId], references: [id])
+  expenseId        String?
+  expense          Expense?  @relation(fields: [expenseId], references: [id])
+  lines            JournalLine[]
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalId      String
+  journal        JournalEntry @relation(fields: [journalId], references: [id], onDelete: Cascade)
+  accountId      String
+  account        GlAccount    @relation(fields: [accountId], references: [id])
+  debit          Float        @default(0)
+  credit         Float        @default(0)
+  partyType      String       @default("")
+  partyId        String       @default("")
+  memo           String       @default("")
+}
+
+// ---------------------------------------------------------------------------
+// Attachments, audit, import batches
+// ---------------------------------------------------------------------------
+
+model Attachment {
+  id          String   @id @default(cuid())
+  filename    String
+  mimeType    String
+  dataUrl     String
+  relatedType String
+  relatedId   String
+  createdAt   DateTime @default(now())
+  createdById String
+  saleId      String?
+  sale        Sale?     @relation(fields: [saleId], references: [id])
+  purchaseId  String?
+  purchase    Purchase? @relation(fields: [purchaseId], references: [id])
+  paymentId   String?
+  payment     Payment?  @relation(fields: [paymentId], references: [id])
+  expenseId   String?
+  expense     Expense?  @relation(fields: [expenseId], references: [id])
+  consignmentId String?
+  consignment Consignment? @relation(fields: [consignmentId], references: [id])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  action        String
+  entityType    String
+  entityId      String
+  entityLabel   String   @default("")
+  previousValue String   @default("")
+  newValue      String   @default("")
+  createdAt     DateTime @default(now())
+  ip            String   @default("")
+}
+
+model ImportBatch {
+  id         String   @id @default(cuid())
+  type       String
+  filename   String
+  createdAt  DateTime @default(now())
+  createdById String
+  rowCount   Int      @default(0)
+  errorCount Int      @default(0)
+  status     String   @default("PREVIEW")
+  report     String   @default("")
+}
