@@ -11,3 +11,4 @@ prisma/data/*.db-shm
 backups
 *.log
 .DS_Store
+.netlify/
